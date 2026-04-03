@@ -68,20 +68,23 @@
         }
 
         .brand-emoji { font-size: 1.6rem; }
-        .brand-text h1 { font-size: 1.15rem; font-weight: 900; line-height: 1.2; }
+        .brand-text h1 { font-size: 1.1rem; font-weight: 900; line-height: 1.2; }
         .brand-text small { font-size: 0.6rem; opacity: 0.8; letter-spacing: 1.5px; text-transform: uppercase; }
 
-        .header-right { text-align: right; }
+        .header-right { text-align: right; display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
         .header-date { font-size: 0.7rem; opacity: 0.85; }
-        .header-pollos {
-            font-size: 0.75rem;
+        .hdr-badges { display: flex; gap: 5px; }
+        .hdr-badge {
+            font-size: 0.65rem;
             font-weight: 700;
-            background: rgba(255,255,255,0.2);
-            padding: 3px 8px;
-            border-radius: 12px;
-            margin-top: 3px;
-            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
         }
+        .hdr-badge.pollos { background: rgba(255,193,7,0.3); color: #FFD54F; }
+        .hdr-badge.restantes { background: rgba(76,175,80,0.3); color: #A5D6A7; }
 
         /* ===== NAV BOTTOM ===== */
         .nav-bottom {
@@ -109,7 +112,6 @@
         }
 
         .nav-item.active { color: var(--rojo); }
-
         .nav-item.active::before {
             content: '';
             position: absolute;
@@ -171,12 +173,28 @@
             gap: 6px;
         }
 
+        /* ===== WELCOME ===== */
+        .welcome {
+            background: linear-gradient(135deg, var(--rojo) 0%, #B71C1C 100%);
+            color: white;
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome::after { content: '🍗'; position: absolute; right: -8px; bottom: -12px; font-size: 4rem; opacity: 0.15; }
+        .welcome h2 { font-size: 1.1rem; font-weight: 900; }
+        .welcome p { font-size: 0.75rem; opacity: 0.9; margin-top: 2px; }
+        .welcome .w-date { font-size: 0.65rem; opacity: 0.7; margin-top: 6px; }
+
         /* ===== STATS ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .stat-card {
@@ -188,36 +206,50 @@
             border-left: 3px solid var(--rojo);
         }
 
-        .stat-card.accent-yellow { border-left-color: var(--amarillo); }
-        .stat-card.accent-green { border-left-color: var(--verde); }
-        .stat-card.accent-blue { border-left-color: var(--azul); }
-        .stat-card.accent-orange { border-left-color: var(--naranja); }
+        .stat-card.yellow { border-left-color: var(--amarillo); }
+        .stat-card.green { border-left-color: var(--verde); }
+        .stat-card.blue { border-left-color: var(--azul); }
+        .stat-card.orange { border-left-color: var(--naranja); }
 
-        .stat-num { font-size: 1.3rem; font-weight: 900; }
+        .stat-num { font-size: 1.2rem; font-weight: 900; }
         .stat-label { font-size: 0.6rem; color: var(--gris-mid); text-transform: uppercase; margin-top: 2px; font-weight: 600; }
 
-        /* ===== WELCOME ===== */
-        .welcome {
-            background: linear-gradient(135deg, var(--rojo) 0%, #B71C1C 100%);
-            color: white;
-            border-radius: var(--radius);
-            padding: 18px;
-            margin-bottom: 12px;
-            position: relative;
-            overflow: hidden;
+        /* ===== POLLO CARDS ===== */
+        .pollos-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .welcome::after {
-            content: '🍗';
-            position: absolute;
-            right: -8px; bottom: -12px;
-            font-size: 4rem;
-            opacity: 0.15;
+        .pollo-card {
+            background: var(--blanco);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            text-align: center;
+            box-shadow: var(--sombra);
+            border: 2px solid transparent;
         }
 
-        .welcome h2 { font-size: 1.1rem; font-weight: 900; }
-        .welcome p { font-size: 0.75rem; opacity: 0.9; margin-top: 2px; }
-        .welcome .w-date { font-size: 0.65rem; opacity: 0.7; margin-top: 6px; }
+        .pollo-card.prepared { border-color: var(--amarillo-mid); }
+        .pollo-card.remaining { border-color: var(--verde); }
+        .pollo-card.sold { border-color: var(--rojo-light); }
+
+        .pollo-card .pc-icon { font-size: 1.8rem; }
+        .pollo-card .pc-count { font-size: 1.6rem; font-weight: 900; }
+        .pollo-card .pc-label { font-size: 0.6rem; color: var(--gris-mid); text-transform: uppercase; margin-top: 2px; font-weight: 600; }
+
+        .pollo-card.prepared .pc-count { color: var(--naranja); }
+        .pollo-card.remaining .pc-count { color: var(--verde); }
+        .pollo-card.sold .pc-count { color: var(--rojo); }
+
+        .pollo-input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .pollo-input-row .fg { flex: 1; margin-bottom: 0; }
 
         /* ===== ALERTS ===== */
         .alert {
@@ -241,20 +273,13 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: var(--gris-mid);
             padding: 10px 4px 6px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .cat-title::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--gris-border);
-        }
-
+        .cat-title::after { content: ''; flex: 1; height: 1px; background: var(--gris-border); }
         .cat-chicken .cat-title { color: var(--rojo); }
         .cat-drinks .cat-title { color: var(--naranja); }
 
@@ -281,17 +306,8 @@
         }
 
         .prod-btn:active { transform: scale(0.94); }
-
-        .prod-btn.chicken {
-            background: linear-gradient(180deg, var(--rojo-bg) 0%, var(--blanco) 100%);
-            border-color: var(--rojo-light);
-        }
-
-        .prod-btn.drink {
-            background: linear-gradient(180deg, var(--amarillo-bg) 0%, var(--blanco) 100%);
-            border-color: var(--amarillo-mid);
-        }
-
+        .prod-btn.chicken { background: linear-gradient(180deg, var(--rojo-bg) 0%, var(--blanco) 100%); border-color: var(--rojo-light); }
+        .prod-btn.drink { background: linear-gradient(180deg, var(--amarillo-bg) 0%, var(--blanco) 100%); border-color: var(--amarillo-mid); }
         .prod-btn.disabled { opacity: 0.35; pointer-events: none; }
 
         .prod-btn .pi { font-size: 1.5rem; margin-bottom: 3px; }
@@ -378,7 +394,7 @@
         }
         .ci-ctrl .ci-v { font-weight: 800; min-width: 18px; text-align: center; font-size: 0.85rem; }
 
-        .cart-item .ci-t { font-weight: 800; font-size: 0.8rem; color: var(--rojo); min-width: 55px; text-align: right; }
+        .cart-item .ci-t { font-weight: 800; font-size: 0.8rem; color: var(--rojo); min-width: 65px; text-align: right; }
         .cart-item .ci-x { background: none; border: none; color: var(--rojo-light); cursor: pointer; font-size: 0.9rem; padding: 4px; }
 
         .cart-foot {
@@ -520,17 +536,17 @@
             border-radius: var(--radius);
             padding: 20px;
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .caja-hero .ch-l { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; opacity: 0.8; }
-        .caja-hero .ch-v { font-size: 2.2rem; font-weight: 900; }
+        .caja-hero .ch-v { font-size: 2rem; font-weight: 900; }
 
         .caja-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .caja-item {
@@ -541,7 +557,7 @@
             box-shadow: var(--sombra);
         }
 
-        .caja-item .ci-v { font-size: 1rem; font-weight: 900; }
+        .caja-item .ci-v { font-size: 0.95rem; font-weight: 900; }
         .caja-item .ci-l { font-size: 0.6rem; color: var(--gris-mid); text-transform: uppercase; margin-top: 2px; }
         .caja-item.pos .ci-v { color: var(--verde); }
         .caja-item.neg .ci-v { color: var(--rojo); }
@@ -557,7 +573,6 @@
         }
 
         .gasto-row:last-child { border-bottom: none; }
-
         .gasto-icon {
             width: 34px; height: 34px;
             border-radius: 50%;
@@ -568,30 +583,76 @@
             font-size: 0.95rem;
             flex-shrink: 0;
         }
-
         .gasto-info { flex: 1; }
         .gasto-info .gi-d { font-weight: 700; font-size: 0.8rem; }
         .gasto-info .gi-m { font-size: 0.65rem; color: var(--gris-mid); }
         .gasto-amt { font-weight: 800; color: var(--rojo); font-size: 0.85rem; }
 
-        /* ===== PENDING ===== */
-        .pend-card {
+        /* ===== PENDIENTES ===== */
+        .pend-person-card {
             background: white;
-            border-radius: var(--radius-sm);
-            padding: 14px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--amarillo);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
             box-shadow: var(--sombra);
+            overflow: hidden;
+            border-left: 4px solid var(--naranja);
         }
 
-        .pend-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .pend-name { font-weight: 800; font-size: 0.9rem; }
-        .pend-time { font-size: 0.65rem; color: var(--gris-mid); }
-        .pend-items { font-size: 0.75rem; color: var(--gris-mid); margin-bottom: 8px; }
-        .pend-foot { display: flex; justify-content: space-between; align-items: center; }
-        .pend-total { font-weight: 900; font-size: 1.1rem; color: var(--rojo); }
+        .pend-person-header {
+            padding: 14px;
+            background: var(--naranja-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #FFE0B2;
+        }
 
-        /* ===== INVENTORY ===== */
+        .pend-person-name {
+            font-weight: 900;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pend-person-total {
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: var(--rojo);
+        }
+
+        .pend-order {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .pend-order:last-child { border-bottom: none; }
+
+        .pend-order-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .pend-order-id { font-weight: 700; font-size: 0.75rem; color: var(--gris-mid); }
+        .pend-order-time { font-size: 0.65rem; color: var(--gris-light); }
+
+        .pend-order-items { font-size: 0.75rem; color: var(--gris-mid); margin-bottom: 6px; }
+
+        .pend-order-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pend-order-total { font-weight: 800; font-size: 0.9rem; color: var(--gris); }
+
+        .pend-btn-pay-all {
+            margin: 10px 14px 14px;
+        }
+
+        /* ===== INVENTARIO ===== */
         .bev-card {
             display: flex;
             align-items: center;
@@ -631,7 +692,6 @@
             justify-content: center;
             font-size: 0.85rem;
         }
-
         .bev-v { font-weight: 800; min-width: 24px; text-align: center; }
 
         /* ===== SALE LIST ===== */
@@ -677,13 +737,10 @@
         .receipt .r-h { text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 8px; margin-bottom: 8px; }
         .receipt .r-h h3 { font-size: 0.9rem; margin-bottom: 2px; }
         .receipt .r-h small { font-size: 0.6rem; color: #999; }
-
         .receipt .r-info { margin-bottom: 8px; font-size: 0.7rem; }
         .receipt .r-info div { padding: 1px 0; }
-
         .receipt .r-items { margin-bottom: 6px; }
         .receipt .r-item { display: flex; justify-content: space-between; padding: 2px 0; }
-
         .receipt .r-tot {
             border-top: 2px dashed #ccc;
             padding-top: 6px;
@@ -693,7 +750,6 @@
             font-weight: 900;
             font-size: 0.9rem;
         }
-
         .receipt .r-pay { font-size: 0.7rem; margin-top: 6px; text-align: center; }
         .receipt .r-foot {
             text-align: center;
@@ -713,40 +769,11 @@
             text-align: center;
             margin-top: 8px;
         }
-
         .change-box .cb-l { font-size: 0.7rem; color: var(--verde); font-weight: 700; }
         .change-box .cb-v { font-size: 1.3rem; font-weight: 900; color: var(--verde); }
-
-        .change-box.missing {
-            background: var(--rojo-bg);
-            border-color: var(--rojo-light);
-        }
-
+        .change-box.missing { background: var(--rojo-bg); border-color: var(--rojo-light); }
         .change-box.missing .cb-l { color: var(--rojo); }
         .change-box.missing .cb-v { color: var(--rojo); }
-
-        /* ===== POLLO PREPARADOS ===== */
-        .pollos-card {
-            background: linear-gradient(135deg, var(--rojo-bg) 0%, white 100%);
-            border: 2px solid var(--rojo-light);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .pollos-card .pc-emoji { font-size: 2.5rem; }
-        .pollos-card .pc-count { font-size: 2rem; font-weight: 900; color: var(--rojo); }
-        .pollos-card .pc-label { font-size: 0.7rem; color: var(--gris-mid); text-transform: uppercase; }
-
-        .pollos-input-row {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-            margin-top: 10px;
-        }
-
-        .pollos-input-row .fg { flex: 1; margin-bottom: 0; }
 
         /* ===== TOAST ===== */
         .toast-box { position: fixed; top: 8px; left: 12px; right: 12px; z-index: 3000; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
@@ -772,7 +799,6 @@
         @keyframes tIn { from { opacity:0; transform:translateY(-15px); } to { opacity:1; transform:translateY(0); } }
         @keyframes tOut { from { opacity:1; } to { opacity:0; } }
 
-        /* ===== PRINT AREA ===== */
         #printArea { display: none; }
 
         @media print {
@@ -785,7 +811,6 @@
 
         /* ===== QUICK ACTIONS ===== */
         .q-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
         .q-btn {
             display: flex;
             flex-direction: column;
@@ -799,25 +824,19 @@
             font-size: 0.75rem;
             gap: 4px;
         }
-
         .q-btn:active { transform: scale(0.95); }
         .q-btn.red { background: var(--rojo-bg); color: var(--rojo); border-color: var(--rojo-light); }
         .q-btn.yellow { background: var(--amarillo-bg); color: var(--naranja); border-color: var(--amarillo-mid); }
         .q-btn .qi { font-size: 1.6rem; }
 
-        /* ===== CHECKOUT ===== */
         #checkoutForm { display: none; }
-
-        /* ===== HIDDEN ===== */
         .hidden { display: none !important; }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 350px) {
             .prod-grid { grid-template-columns: repeat(2, 1fr); }
             .prod-btn { min-height: 75px; }
             .prod-btn .pi { font-size: 1.2rem; }
         }
-
         @media (min-width: 500px) {
             .prod-grid { grid-template-columns: repeat(4, 1fr); }
         }
@@ -837,7 +856,10 @@
         </div>
         <div class="header-right">
             <div class="header-date" id="hdrDate"></div>
-            <div class="header-pollos" id="hdrPollos">🔥 0 pollos</div>
+            <div class="hdr-badges">
+                <span class="hdr-badge pollos" id="hdrPrep">🔥 0</span>
+                <span class="hdr-badge restantes" id="hdrRemain">🐔 0</span>
+            </div>
         </div>
     </div>
 </header>
@@ -854,15 +876,27 @@
 
         <div id="dashAlert"></div>
 
-        <div class="pollos-card" id="dashPollosCard">
-            <div class="pc-emoji">🔥</div>
-            <div class="pc-count" id="dashPollosCount">0</div>
-            <div class="pc-label">Pollos preparados hoy</div>
-            <div class="pollos-input-row">
-                <div class="fg">
-                    <input type="number" id="dashPollosInput" placeholder="Cantidad" min="1">
+        <!-- Pollos preparados / restantes / vendidos -->
+        <div class="pollos-row">
+            <div class="pollo-card prepared">
+                <div class="pc-icon">🔥</div>
+                <div class="pc-count" id="dashPrepCount">0</div>
+                <div class="pc-label">Preparados</div>
+            </div>
+            <div class="pollo-card remaining">
+                <div class="pc-icon">🐔</div>
+                <div class="pc-count" id="dashRemainCount">0</div>
+                <div class="pc-label">Restantes</div>
+            </div>
+        </div>
+
+        <div class="card" style="padding:12px;">
+            <div style="display:flex;gap:8px;align-items:flex-end;">
+                <div class="fg" style="margin-bottom:0;">
+                    <label>Cantidad de pollos a agregar</label>
+                    <input type="number" id="dashPollosInput" placeholder="Ej: 18" min="1">
                 </div>
-                <button class="btn btn-red btn-sm" onclick="addPollosPrep()">➕ Agregar</button>
+                <button class="btn btn-red btn-sm" onclick="addPollosPrep()" style="flex-shrink:0;">➕</button>
             </div>
         </div>
 
@@ -883,19 +917,16 @@
 
     <!-- POS -->
     <section id="pg-pos" class="page">
-        <!-- Sección Pollo -->
         <div class="cat-chicken">
             <div class="cat-title">🍗 Pollo Asado</div>
             <div class="prod-grid" id="chickenGrid"></div>
         </div>
 
-        <!-- Sección Bebidas -->
         <div class="cat-drinks">
             <div class="cat-title">🥤 Gaseosas y Bebidas</div>
             <div class="prod-grid" id="drinksGrid"></div>
         </div>
 
-        <!-- Carrito -->
         <div class="cart-panel" id="cartPanel">
             <div class="cart-head">
                 <h3>🧾 Pedido</h3>
@@ -910,15 +941,12 @@
             </div>
         </div>
 
-        <!-- Checkout -->
         <div class="card" id="checkoutForm">
             <div class="card-title" style="margin-bottom:12px;">💳 Cobrar</div>
-
             <div class="fg">
                 <label>Nombre del cliente</label>
                 <input type="text" id="custName" placeholder="Nombre completo">
             </div>
-
             <div class="fg">
                 <label>Método de pago</label>
                 <div class="pay-opts">
@@ -926,7 +954,6 @@
                     <div class="pay-opt" onclick="selPay('transferencia')" id="pTr"><div class="po-i">📱</div><div class="po-t">Transferencia</div></div>
                 </div>
             </div>
-
             <div id="efSection" class="hidden">
                 <div class="fg">
                     <label>Monto recibido</label>
@@ -934,7 +961,6 @@
                 </div>
                 <div id="changeBox"></div>
             </div>
-
             <div class="fg">
                 <label>Estado del pedido</label>
                 <div class="pay-opts">
@@ -942,7 +968,6 @@
                     <div class="pay-opt" onclick="selStatus('pendiente')" id="sPn"><div class="po-i">⏳</div><div class="po-t">Pendiente</div></div>
                 </div>
             </div>
-
             <div class="btn-group">
                 <button class="btn btn-outline" onclick="cancelCheckout()">Cancelar</button>
                 <button class="btn btn-green btn-lg" onclick="confirmSale()">✅ COBRAR</button>
@@ -956,16 +981,13 @@
             <div class="ch-l">Total esperado en caja</div>
             <div class="ch-v" id="cajaTotal">$0</div>
         </div>
-
         <div class="caja-grid" id="cajaBreak"></div>
 
         <div class="card">
             <div class="card-header">
                 <div class="card-title">🏦 Fondo de Caja</div>
             </div>
-            <p style="font-size:0.7rem;color:var(--gris-mid);margin-bottom:10px;">
-                🔒 Protegido con contraseña
-            </p>
+            <p style="font-size:0.7rem;color:var(--gris-mid);margin-bottom:10px;">🔒 Protegido con contraseña</p>
             <div class="form-row">
                 <div class="fg">
                     <label>Monto inicial</label>
@@ -1021,12 +1043,19 @@
     <section id="pg-inv" class="page">
         <div class="card">
             <div class="card-header">
-                <div class="card-title">🔥 Pollos Preparados Hoy</div>
+                <div class="card-title">🔥 Pollos del Día</div>
             </div>
-            <div class="pollos-card" style="margin-bottom:10px;border:none;padding:12px;">
-                <div class="pc-emoji">🍗</div>
-                <div class="pc-count" id="invPollosCount">0</div>
-                <div class="pc-label">Total preparados</div>
+            <div class="pollos-row">
+                <div class="pollo-card prepared">
+                    <div class="pc-icon">🔥</div>
+                    <div class="pc-count" id="invPrepCount">0</div>
+                    <div class="pc-label">Preparados</div>
+                </div>
+                <div class="pollo-card remaining">
+                    <div class="pc-icon">🐔</div>
+                    <div class="pc-count" id="invRemainCount">0</div>
+                    <div class="pc-label">Restantes</div>
+                </div>
             </div>
             <div id="pollosHistory"></div>
         </div>
@@ -1042,7 +1071,7 @@
             <div class="form-row">
                 <div class="fg">
                     <label>Precio</label>
-                    <input type="number" id="bevPrice" value="15000">
+                    <input type="number" id="bevPrice" value="8000">
                 </div>
                 <div class="fg">
                     <label>Stock</label>
@@ -1076,7 +1105,7 @@
         <div class="modal-h"></div>
         <div class="modal-body">
             <div class="modal-title">🔒 Ingresar Contraseña</div>
-            <p style="text-align:center;font-size:0.8rem;color:var(--gris-mid);margin-bottom:12px;">Ingresa el PIN para modificar el fondo de caja</p>
+            <p style="text-align:center;font-size:0.8rem;color:var(--gris-mid);margin-bottom:12px;">PIN para modificar fondo de caja</p>
             <div class="pin-container">
                 <input type="password" class="pin-input" maxlength="1" id="pin1" oninput="pinNext(1)" inputmode="numeric">
                 <input type="password" class="pin-input" maxlength="1" id="pin2" oninput="pinNext(2)" inputmode="numeric">
@@ -1133,7 +1162,7 @@
             <div class="modal-title">🧾 Factura</div>
             <div id="receiptArea"></div>
             <div class="btn-group">
-                <button class="btn btn-yellow" onclick="shareReceipt()">📤 Compartir / Imprimir</button>
+                <button class="btn btn-yellow" onclick="shareReceipt()">📤 Compartir / RawBT</button>
                 <button class="btn btn-red" onclick="closeMod('modReceipt')">Cerrar</button>
             </div>
         </div>
@@ -1145,7 +1174,7 @@
     <div class="modal">
         <div class="modal-h"></div>
         <div class="modal-body">
-            <div class="modal-title">💳 Cobrar Pedido Pendiente</div>
+            <div class="modal-title">💳 Cobrar Pedido</div>
             <div id="ppContent"></div>
             <div class="fg" style="margin-top:12px;">
                 <label>Método de pago</label>
@@ -1162,6 +1191,28 @@
     </div>
 </div>
 
+<!-- ===== MODAL PAGAR TODO DE UNA PERSONA ===== -->
+<div class="modal-bg" id="modPayAll">
+    <div class="modal">
+        <div class="modal-h"></div>
+        <div class="modal-body">
+            <div class="modal-title">💳 Cobrar Todo al Cliente</div>
+            <div id="paContent"></div>
+            <div class="fg" style="margin-top:12px;">
+                <label>Método de pago</label>
+                <div class="pay-opts">
+                    <div class="pay-opt" onclick="selAllPay('efectivo')" id="paEf"><div class="po-i">💵</div><div class="po-t">Efectivo</div></div>
+                    <div class="pay-opt" onclick="selAllPay('transferencia')" id="paTr"><div class="po-i">📱</div><div class="po-t">Transferencia</div></div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-outline" onclick="closeMod('modPayAll')">Cancelar</button>
+                <button class="btn btn-green" onclick="executePayAll()">✅ Cobrar Todo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== MODAL DETALLE VENTA ===== -->
 <div class="modal-bg" id="modSaleDetail">
     <div class="modal">
@@ -1170,7 +1221,7 @@
             <div class="modal-title">🧾 Detalle de Venta</div>
             <div id="saleDetailArea"></div>
             <div class="btn-group">
-                <button class="btn btn-yellow" onclick="shareFromDetail()">📤 Compartir / Imprimir</button>
+                <button class="btn btn-yellow" onclick="shareFromDetail()">📤 Compartir / RawBT</button>
                 <button class="btn btn-red" onclick="closeMod('modSaleDetail')">Cerrar</button>
             </div>
         </div>
@@ -1179,27 +1230,33 @@
 
 <!-- Toast -->
 <div class="toast-box" id="toastBox"></div>
-
-<!-- Print area -->
 <div id="printArea"></div>
 
 <script>
 /* ============================================
-   FORMATO COP (PESOS COLOMBIANOS)
-   Sin decimales, punto separador de miles
+   FORMATO COP - PUNTOS CADA 3 DÍGITOS
    ============================================ */
 function cop(n) {
-    return '$' + Math.round(n).toLocaleString('es-CO');
-}
-
-function copInput(n) {
-    return '$' + parseInt(n||0).toLocaleString('es-CO');
+    if (n == null || isNaN(n)) return '$0';
+    const num = Math.round(Number(n));
+    // Formato manual con puntos cada 3 dígitos de derecha a izquierda
+    const str = num.toString();
+    let result = '';
+    let count = 0;
+    for (let i = str.length - 1; i >= 0; i--) {
+        if (count > 0 && count % 3 === 0) {
+            result = '.' + result;
+        }
+        result = str[i] + result;
+        count++;
+    }
+    return '$' + result;
 }
 
 /* ============================================
    ESTADO
    ============================================ */
-const APP_KEY = 'plazoletaPOS_v4';
+const APP_KEY = 'plazoletaPOS_v5';
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 
@@ -1207,7 +1264,7 @@ function defaultState() {
     return {
         date: todayStr(),
         cajaInicial: 0,
-        pollosPrep: [],       // [{id, qty, time}]
+        pollosPrep: [],
         pollosCounter: 1,
         sales: [],
         gastos: [],
@@ -1230,7 +1287,9 @@ function defaultState() {
         selPay: 'efectivo',
         selStatus: 'pagado',
         selPendPay: null,
+        selAllPay: null,
         pendingSaleId: null,
+        pendingPersonName: null,
         detailSaleId: null
     };
 }
@@ -1242,10 +1301,9 @@ function load() {
             const st = JSON.parse(s);
             if (st.date !== todayStr()) {
                 const prevBev = st.beverages || [];
-                const prevBevC = st.bevCounter || 12;
                 const ns = defaultState();
                 ns.beverages = prevBev;
-                ns.bevCounter = prevBevC;
+                ns.bevCounter = prevBev.length > 0 ? Math.max(...prevBev.map(b=>b.id)) + 1 : 12;
                 toast('🌅 Nuevo día reiniciado','info');
                 return ns;
             }
@@ -1265,10 +1323,37 @@ let S = load();
    PRODUCTOS POLLO
    ============================================ */
 const CHICKEN = [
-    {id:'pollo_entero',name:'Pollo Entero',price:40000,icon:'🍗'},
-    {id:'medio_pollo',name:'½ Pollo',price:21000,icon:'🍗'},
-    {id:'cuarto_pollo',name:'¼ Pollo',price:12000,icon:'🍗'}
+    {id:'pollo_entero',name:'Pollo Entero',price:40000,icon:'🍗',chickenCost:1},
+    {id:'medio_pollo',name:'½ Pollo',price:21000,icon:'🍗',chickenCost:0.5},
+    {id:'cuarto_pollo',name:'¼ Pollo',price:12000,icon:'🍗',chickenCost:0.25}
 ];
+
+/* ============================================
+   CÁLCULO DE POLLOS
+   ============================================ */
+function getTotalPrepared() {
+    return S.pollosPrep.reduce((s, p) => s + p.qty, 0);
+}
+
+function getTotalSoldChickens() {
+    let total = 0;
+    S.sales.forEach(sale => {
+        sale.items.forEach(item => {
+            // Buscar el costo en pollo de este producto
+            const chickenProd = CHICKEN.find(c => c.id === item.name || c.name === item.name);
+            // Mapeo por nombre
+            if (item.name === 'Pollo Entero') total += 1 * item.qty;
+            else if (item.name === '½ Pollo') total += 0.5 * item.qty;
+            else if (item.name === '¼ Pollo') total += 0.25 * item.qty;
+        });
+    });
+    return Math.round(total * 100) / 100;
+}
+
+function getRemainingChickens() {
+    const remaining = getTotalPrepared() - getTotalSoldChickens();
+    return Math.round(remaining * 100) / 100;
+}
 
 /* ============================================
    NAV
@@ -1277,7 +1362,6 @@ function goPage(pg) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     document.getElementById('pg-'+pg).classList.add('active');
-    // Find the right nav button
     const map = {dash:0,pos:1,caja:2,pend:3,inv:4};
     document.querySelectorAll('.nav-item')[map[pg]]?.classList.add('active');
     render(pg);
@@ -1317,7 +1401,6 @@ function nowDateStr() {
     return new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 
-// Cerrar modales al tocar fuera
 document.querySelectorAll('.modal-bg').forEach(m => {
     m.addEventListener('click', e => { if(e.target===m) m.classList.remove('active'); });
 });
@@ -1329,15 +1412,26 @@ function rDash() {
     document.getElementById('hdrDate').textContent = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short'});
     document.getElementById('dashDate').textContent = nowDateStr();
 
-    // Pollos preparados
-    const totalPollos = S.pollosPrep.reduce((s,p) => s + p.qty, 0);
-    document.getElementById('hdrPollos').textContent = '🔥 ' + totalPollos + ' pollos';
-    document.getElementById('dashPollosCount').textContent = totalPollos;
+    // Pollos
+    const prepared = getTotalPrepared();
+    const remaining = getRemainingChickens();
 
-    if (totalPollos === 0) {
-        document.getElementById('dashAlert').innerHTML = '<div class="alert warn">⚠️ No has registrado pollos preparados hoy</div>';
+    document.getElementById('hdrPrep').textContent = '🔥 ' + prepared;
+    document.getElementById('hdrRemain').textContent = '🐔 ' + remaining;
+
+    document.getElementById('dashPrepCount').textContent = prepared;
+    document.getElementById('dashRemainCount').textContent = remaining;
+
+    // Alertas
+    const alertDiv = document.getElementById('dashAlert');
+    if (remaining <= 0 && prepared > 0) {
+        alertDiv.innerHTML = '<div class="alert danger">🚨 ¡No quedan pollos! Prepara más.</div>';
+    } else if (remaining <= 2 && remaining > 0) {
+        alertDiv.innerHTML = '<div class="alert warn">⚠️ Quedan ' + remaining + ' pollos. Considera preparar más.</div>';
+    } else if (prepared === 0) {
+        alertDiv.innerHTML = '<div class="alert warn">⚠️ No has registrado pollos preparados hoy</div>';
     } else {
-        document.getElementById('dashAlert').innerHTML = '';
+        alertDiv.innerHTML = '<div class="alert ok">✅ ' + remaining + ' pollos disponibles para la venta</div>';
     }
 
     // Stats
@@ -1350,9 +1444,9 @@ function rDash() {
 
     document.getElementById('dashStats').innerHTML = `
         <div class="stat-card"><div class="stat-num">${cop(totVentas)}</div><div class="stat-label">Ventas cobradas</div></div>
-        <div class="stat-card accent-yellow"><div class="stat-num">${cop(totPend)}</div><div class="stat-label">Por cobrar</div></div>
-        <div class="stat-card accent-orange"><div class="stat-num">${cop(totGastos)}</div><div class="stat-label">Gastos</div></div>
-        <div class="stat-card accent-green"><div class="stat-num">${cop(neto)}</div><div class="stat-label">Neto del día</div></div>
+        <div class="stat-card yellow"><div class="stat-num">${cop(totPend)}</div><div class="stat-label">Por cobrar</div></div>
+        <div class="stat-card orange"><div class="stat-num">${cop(totGastos)}</div><div class="stat-label">Gastos</div></div>
+        <div class="stat-card green"><div class="stat-num">${cop(neto)}</div><div class="stat-label">Neto del día</div></div>
     `;
 
     // Badge pendientes
@@ -1361,7 +1455,7 @@ function rDash() {
     else { badge.style.display='none'; }
 
     // Últimas ventas
-    const recent = [...S.sales].reverse().slice(0, 6);
+    const recent = [...S.sales].reverse().slice(0, 8);
     const div = document.getElementById('dashSales');
     if (recent.length === 0) {
         div.innerHTML = '<div class="cart-empty"><div class="ce-i">📋</div><p>No hay ventas aún</p></div>';
@@ -1405,7 +1499,6 @@ function addPollosPrep() {
    POS
    ============================================ */
 function rPOS() {
-    // Pollo grid
     const cg = document.getElementById('chickenGrid');
     cg.innerHTML = CHICKEN.map(p => `
         <button class="prod-btn chicken" onclick="addCart('${p.id}')">
@@ -1415,7 +1508,6 @@ function rPOS() {
         </button>
     `).join('');
 
-    // Bebidas grid
     const dg = document.getElementById('drinksGrid');
     dg.innerHTML = S.beverages.map(b => {
         const out = b.stock <= 0;
@@ -1455,6 +1547,22 @@ function addCart(id) {
         if (b && b.stock<=0) { toast('❌ Sin stock','error'); return; }
     }
 
+    // Verificar si hay pollos restantes
+    if (prod.type==='chicken') {
+        const remaining = getRemainingChickens();
+        const cartChickenNeeded = S.cart.reduce((s,i) => {
+            if (i.type==='chicken') {
+                const cp = CHICKEN.find(c=>c.id===i.id);
+                return s + (cp ? cp.chickenCost * i.qty : 0);
+            }
+            return s;
+        }, 0);
+        if (remaining - cartChickenNeeded < prod.chickenCost) {
+            toast('❌ No hay suficientes pollos. Restantes: ' + (remaining - cartChickenNeeded).toFixed(2),'error');
+            return;
+        }
+    }
+
     const exist = S.cart.find(c=>c.pid===id);
     if (exist) {
         if (prod.type==='bev') {
@@ -1480,6 +1588,20 @@ function updateCartQ(pid, d) {
         if (b && item.qty > b.stock) {
             item.qty -= d;
             toast('⚠️ Stock insuficiente','warn');
+        }
+    }
+    else if (item.type==='chicken') {
+        const remaining = getRemainingChickens();
+        const cartChickenNeeded = S.cart.reduce((s,i) => {
+            if (i.type==='chicken') {
+                const cp = CHICKEN.find(c=>c.id===i.id);
+                return s + (cp ? cp.chickenCost * i.qty : 0);
+            }
+            return s;
+        }, 0);
+        if (cartChickenNeeded > remaining) {
+            item.qty -= d;
+            toast('❌ No hay suficientes pollos','error');
         }
     }
     rCart();
@@ -1705,31 +1827,36 @@ function showReceipt(sale) {
 function shareReceipt() {
     const el = document.getElementById('ticketContent');
     if (!el) return;
+    sendToRawBT(el.innerText);
+}
 
-    const text = el.innerText;
-
-    // Intentar Web Share API (funciona en Android con RawBT si se instala como PWA o se usa Chrome)
+function sendToRawBT(text) {
+    // Método 1: Web Share API (RawBT aparece como opción en Android)
     if (navigator.share) {
         const blob = new Blob([text], {type: 'text/plain'});
-        const file = new File([blob], 'factura.txt', {type: 'text/plain'});
+        const file = new File([blob], 'factura_plazoleta.txt', {type: 'text/plain'});
 
         navigator.share({
             title: 'Factura - La Plazoleta del Pollo',
             text: text,
             files: [file]
-        }).catch(() => {
-            // Fallback: copiar al portapapeles
-            copyReceiptText(text);
+        }).then(() => {
+            toast('✅ Enviado a RawBT','success');
+        }).catch((err) => {
+            // Si el usuario cancela o falla, copiar al portapapeles
+            if (err.name !== 'AbortError') {
+                copyText(text);
+            }
         });
     } else {
-        copyReceiptText(text);
+        copyText(text);
     }
 }
 
-function copyReceiptText(text) {
+function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
-            toast('📋 Factura copiada al portapapeles. Pégala en RawBT.','success');
+            toast('📋 Copiado. Ábrelo en RawBT y pega.','success');
         }).catch(() => {
             fallbackCopy(text);
         });
@@ -1741,49 +1868,37 @@ function copyReceiptText(text) {
 function fallbackCopy(text) {
     const ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
+    ta.style.cssText = 'position:fixed;left:-9999px;';
     document.body.appendChild(ta);
     ta.select();
     try {
         document.execCommand('copy');
         toast('📋 Copiado. Pégalo en RawBT.','success');
     } catch(e) {
-        toast('⚠️ No se pudo copiar','error');
+        // Último recurso: mostrar en textarea seleccionable
+        const win = window.open('', '_blank');
+        win.document.write(`<textarea style="width:100%;height:100%;font-family:monospace;font-size:14px;">${text}</textarea>`);
+        toast('⚠️ Selecciona y copia el texto','warn');
     }
     document.body.removeChild(ta);
 }
 
 /* ============================================
-   DETALLE DE VENTA (desde historial)
+   DETALLE DE VENTA
    ============================================ */
 function showSaleDetail(id) {
     const sale = S.sales.find(s => s.id === id);
     if (!sale) return;
 
     S.detailSaleId = id;
-
-    const content = receiptHTML(sale);
-    document.getElementById('saleDetailArea').innerHTML = content;
+    document.getElementById('saleDetailArea').innerHTML = receiptHTML(sale);
     openMod('modSaleDetail');
 }
 
 function shareFromDetail() {
     const el = document.getElementById('saleDetailArea').querySelector('.receipt');
     if (!el) return;
-    const text = el.innerText;
-
-    if (navigator.share) {
-        const blob = new Blob([text], {type: 'text/plain'});
-        const file = new File([blob], 'factura.txt', {type: 'text/plain'});
-        navigator.share({
-            title: 'Factura - La Plazoleta del Pollo',
-            text: text,
-            files: [file]
-        }).catch(() => { copyReceiptText(text); });
-    } else {
-        copyReceiptText(text);
-    }
+    sendToRawBT(el.innerText);
 }
 
 /* ============================================
@@ -1822,7 +1937,7 @@ function openPinModal() {
     document.getElementById('pin3').value = '';
     document.getElementById('pin4').value = '';
     document.getElementById('pinError').style.display = 'none';
-    document.getElementById('pin1').focus();
+    setTimeout(() => document.getElementById('pin1').focus(), 100);
     openMod('modPin');
 }
 
@@ -1845,10 +1960,7 @@ function verifyPin() {
         openMod('modCaja');
     } else {
         document.getElementById('pinError').style.display = 'block';
-        document.getElementById('pin1').value = '';
-        document.getElementById('pin2').value = '';
-        document.getElementById('pin3').value = '';
-        document.getElementById('pin4').value = '';
+        ['pin1','pin2','pin3','pin4'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('pin1').focus();
         toast('❌ Contraseña incorrecta','error');
     }
@@ -1921,7 +2033,7 @@ function rGastos() {
 }
 
 /* ============================================
-   PENDIENTES
+   PENDIENTES - AGRUPADOS POR PERSONA
    ============================================ */
 function rPend() {
     const pends = S.sales.filter(s=>s.status==='pendiente');
@@ -1929,7 +2041,9 @@ function rPend() {
 
     const alert = document.getElementById('pendAlert');
     if (pends.length > 0) {
-        alert.innerHTML = `<div class="alert warn">⏳ <span><b>${pends.length}</b> pedido(s) pendiente(s) — Total: <b>${cop(totP)}</b></span></div>`;
+        // Contar personas únicas
+        const personas = [...new Set(pends.map(p=>p.customerName.toLowerCase()))];
+        alert.innerHTML = `<div class="alert warn">⏳ <span><b>${personas.length}</b> persona(s) deben — <b>${pends.length}</b> pedido(s) — Total: <b>${cop(totP)}</b></span></div>`;
     } else {
         alert.innerHTML = '<div class="alert ok">✅ No hay pedidos pendientes</div>';
     }
@@ -1940,21 +2054,60 @@ function rPend() {
         return;
     }
 
-    list.innerHTML = [...pends].reverse().map(s => `
-        <div class="pend-card">
-            <div class="pend-head">
-                <span class="pend-name">👤 ${s.customerName}</span>
-                <span class="pend-time">${s.id} • ${s.time}</span>
-            </div>
-            <div class="pend-items">${s.items.map(i=>i.qty+'x '+i.name).join(' • ')}</div>
-            <div class="pend-foot">
-                <span class="pend-total">${cop(s.total)}</span>
-                <button class="btn btn-sm btn-green" onclick="openPendPay('${s.id}')">💳 Cobrar</button>
-            </div>
-        </div>
-    `).join('');
+    // Agrupar por nombre de cliente (case insensitive)
+    const grouped = {};
+    pends.forEach(sale => {
+        const key = sale.customerName.toLowerCase().trim();
+        if (!grouped[key]) {
+            grouped[key] = {
+                displayName: sale.customerName,
+                sales: []
+            };
+        }
+        grouped[key].sales.push(sale);
+    });
+
+    let html = '';
+    for (const key in grouped) {
+        const person = grouped[key];
+        const personTotal = person.sales.reduce((s, v) => s + v.total, 0);
+
+        html += `
+        <div class="pend-person-card">
+            <div class="pend-person-header">
+                <div class="pend-person-name">👤 ${person.displayName} <span style="font-size:0.7rem;font-weight:600;color:var(--gris-mid);">(${person.sales.length} pedido${person.sales.length>1?'s':''})</span></div>
+                <div class="pend-person-total">Debe: ${cop(personTotal)}</div>
+            </div>`;
+
+        person.sales.forEach(sale => {
+            html += `
+            <div class="pend-order">
+                <div class="pend-order-head">
+                    <span class="pend-order-id">${sale.id}</span>
+                    <span class="pend-order-time">${sale.time}</span>
+                </div>
+                <div class="pend-order-items">${sale.items.map(i=>i.qty+'x '+i.name).join(' • ')}</div>
+                <div class="pend-order-foot">
+                    <span class="pend-order-total">${cop(sale.total)}</span>
+                    <button class="btn btn-sm btn-green" onclick="openPendPay('${sale.id}')">💳 Cobrar</button>
+                </div>
+            </div>`;
+        });
+
+        if (person.sales.length > 1) {
+            html += `
+            <div class="pend-btn-pay-all">
+                <button class="btn btn-yellow btn-block" onclick="openPayAll('${key}')">💰 Cobrar todo (${cop(personTotal)})</button>
+            </div>`;
+        }
+
+        html += '</div>';
+    }
+
+    list.innerHTML = html;
 }
 
+/* Cobrar pedido individual */
 function openPendPay(id) {
     const sale = S.sales.find(s=>s.id===id);
     if (!sale) return;
@@ -1995,17 +2148,80 @@ function executePendPay() {
     closeMod('modPayPend');
     save();
     rPend();
-    toast('✅ Pedido cobrado','success');
+    toast('✅ Pedido '+sale.id+' cobrado','success');
+}
+
+/* Cobrar TODO de una persona */
+function openPayAll(personKey) {
+    const pends = S.sales.filter(s => s.status==='pendiente' && s.customerName.toLowerCase().trim() === personKey);
+    if (pends.length === 0) return;
+
+    S.pendingPersonName = personKey;
+    S.selAllPay = null;
+    document.getElementById('paEf').classList.remove('sel');
+    document.getElementById('paTr').classList.remove('sel');
+
+    const totalAll = pends.reduce((s,v) => s+v.total, 0);
+    const displayName = pends[0].customerName;
+
+    let itemsHtml = '';
+    pends.forEach(sale => {
+        itemsHtml += `<div style="border-bottom:1px dashed #eee;padding:6px 0;">
+            <div style="font-size:0.7rem;color:var(--gris-mid);font-weight:700;">${sale.id} - ${sale.time}</div>
+            ${sale.items.map(i=>`<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:0.75rem;"><span>${i.qty}x ${i.name}</span><span>${cop(i.price*i.qty)}</span></div>`).join('')}
+            <div style="text-align:right;font-size:0.8rem;font-weight:700;">Subtotal: ${cop(sale.total)}</div>
+        </div>`;
+    });
+
+    document.getElementById('paContent').innerHTML = `
+        <div style="text-align:center;margin-bottom:10px;">
+            <div style="font-size:0.7rem;color:var(--gris-mid);">Cliente</div>
+            <div style="font-size:1.1rem;font-weight:800;">${displayName}</div>
+            <div style="font-size:0.7rem;color:var(--gris-mid);">${pends.length} pedido(s) pendiente(s)</div>
+        </div>
+        ${itemsHtml}
+        <div style="text-align:center;font-size:1.4rem;font-weight:900;color:var(--rojo);margin-top:12px;padding-top:10px;border-top:2px solid var(--gris-border);">
+            TOTAL A COBRAR: ${cop(totalAll)}
+        </div>
+    `;
+
+    openMod('modPayAll');
+}
+
+function selAllPay(m) {
+    S.selAllPay = m;
+    document.getElementById('paEf').classList.toggle('sel', m==='efectivo');
+    document.getElementById('paTr').classList.toggle('sel', m==='transferencia');
+}
+
+function executePayAll() {
+    if (!S.selAllPay) { toast('❌ Selecciona método de pago','error'); return; }
+
+    const pends = S.sales.filter(s => s.status==='pendiente' && s.customerName.toLowerCase().trim() === S.pendingPersonName);
+    if (pends.length === 0) return;
+
+    pends.forEach(sale => {
+        sale.status = 'pagado';
+        sale.paymentMethod = S.selAllPay;
+        sale.payTime = nowTime();
+    });
+
+    closeMod('modPayAll');
+    save();
+    rPend();
+    toast('✅ '+pends.length+' pedido(s) cobrado(s)','success');
 }
 
 /* ============================================
    INVENTARIO BEBIDAS
    ============================================ */
 function rInv() {
-    const totalPollos = S.pollosPrep.reduce((s,p)=>s+p.qty,0);
-    document.getElementById('invPollosCount').textContent = totalPollos;
+    const prepared = getTotalPrepared();
+    const remaining = getRemainingChickens();
 
-    // Historial de pollos
+    document.getElementById('invPrepCount').textContent = prepared;
+    document.getElementById('invRemainCount').textContent = remaining;
+
     const ph = document.getElementById('pollosHistory');
     if (S.pollosPrep.length===0) {
         ph.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-mid);font-size:0.8rem;">Sin registros</div>';
@@ -2014,15 +2230,14 @@ function rInv() {
             <div class="gasto-row">
                 <div class="gasto-icon">🔥</div>
                 <div class="gasto-info">
-                    <div class="gi-d">Lote registrado</div>
+                    <div class="gi-d">${p.qty} pollo${p.qty>1?'s':''} preparado${p.qty>1?'s':''}</div>
                     <div class="gi-m">${p.time}</div>
                 </div>
-                <div class="gasto-amt" style="color:var(--rojo);">+${p.qty} 🍗</div>
+                <div class="gasto-amt" style="color:var(--naranja);">+${p.qty}</div>
             </div>
         `).join('');
     }
 
-    // Bebidas
     const bl = document.getElementById('bevList');
     if (S.beverages.length===0) {
         bl.innerHTML = '<div class="cart-empty"><div class="ce-i">🥤</div><p>No hay bebidas</p></div>';
@@ -2059,7 +2274,7 @@ function addBev() {
     S.beverages.push({id: S.bevCounter++, name:n, price:p, stock:s, icon:icons[Math.floor(Math.random()*icons.length)]});
 
     document.getElementById('bevName').value = '';
-    document.getElementById('bevPrice').value = '15000';
+    document.getElementById('bevPrice').value = '8000';
     document.getElementById('bevStock').value = '24';
     save();
     rInv();
