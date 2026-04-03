@@ -27,6 +27,8 @@
             --azul-bg: #E3F2FD;
             --naranja: #E65100;
             --naranja-bg: #FFF3E0;
+            --morado: #6A1B9A;
+            --morado-bg: #F3E5F5;
             --sombra: 0 2px 8px rgba(0,0,0,0.08);
             --sombra-lg: 0 4px 20px rgba(0,0,0,0.12);
             --radius: 12px;
@@ -43,6 +45,34 @@
             padding-bottom: 72px;
             font-size: 14px;
         }
+
+        /* ===== SYNC STATUS ===== */
+        .sync-bar {
+            background: var(--verde-bg);
+            padding: 4px 12px;
+            text-align: center;
+            font-size: 0.6rem;
+            color: var(--verde);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .sync-bar.offline {
+            background: var(--rojo-bg);
+            color: var(--rojo);
+        }
+
+        .sync-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--verde);
+            display: inline-block;
+        }
+
+        .sync-bar.offline .sync-dot { background: var(--rojo); }
 
         /* ===== HEADER ===== */
         .header {
@@ -412,6 +442,7 @@
         /* ===== FORMS ===== */
         .fg { margin-bottom: 10px; }
         .fg label { display: block; font-size: 0.65rem; font-weight: 700; color: var(--gris-mid); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+
         .fg input, .fg select, .fg textarea {
             width: 100%; padding: 11px 12px;
             border: 2px solid var(--gris-border);
@@ -424,6 +455,28 @@
 
         .form-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
         .form-row .fg { flex: 1; min-width: 0; }
+
+        /* ===== MONEY INPUT ===== */
+        .money-input-wrap {
+            position: relative;
+        }
+
+        .money-input-wrap .prefix {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 800;
+            color: var(--gris-mid);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .money-input-wrap input {
+            padding-left: 28px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
 
         /* ===== BUTTONS ===== */
         .btn {
@@ -652,6 +705,42 @@
             margin: 10px 14px 14px;
         }
 
+        /* ===== USO POLLOS ===== */
+        .uso-card {
+            background: white;
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: var(--sombra);
+            border-left: 4px solid var(--morado);
+        }
+
+        .uso-card .uso-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .uso-card .uso-type {
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .uso-card .uso-qty {
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--morado);
+        }
+
+        .uso-card .uso-detail {
+            font-size: 0.75rem;
+            color: var(--gris-mid);
+        }
+
         /* ===== INVENTARIO ===== */
         .bev-card {
             display: flex;
@@ -844,6 +933,12 @@
 </head>
 <body>
 
+<!-- ===== SYNC BAR ===== -->
+<div class="sync-bar" id="syncBar">
+    <span class="sync-dot"></span>
+    <span id="syncText">Conectando...</span>
+</div>
+
 <!-- ===== HEADER ===== -->
 <header class="header">
     <div class="header-inner">
@@ -876,12 +971,12 @@
 
         <div id="dashAlert"></div>
 
-        <!-- Pollos preparados / restantes / vendidos -->
+        <!-- Pollos preparados / restantes -->
         <div class="pollos-row">
             <div class="pollo-card prepared">
                 <div class="pc-icon">🔥</div>
                 <div class="pc-count" id="dashPrepCount">0</div>
-                <div class="pc-label">Preparados</div>
+                <div class="pc-label">Preparados hoy</div>
             </div>
             <div class="pollo-card remaining">
                 <div class="pc-icon">🐔</div>
@@ -957,7 +1052,7 @@
             <div id="efSection" class="hidden">
                 <div class="fg">
                     <label>Monto recibido</label>
-                    <input type="number" id="cashRec" placeholder="0" oninput="calcChange()">
+                    <input type="text" id="cashRec" placeholder="$0" oninput="calcChange()">
                 </div>
                 <div id="changeBox"></div>
             </div>
@@ -991,7 +1086,7 @@
             <div class="form-row">
                 <div class="fg">
                     <label>Monto inicial</label>
-                    <input type="number" id="cajaIniInput" placeholder="0" readonly>
+                    <input type="text" id="cajaIniInput" placeholder="$0" readonly>
                 </div>
                 <button class="btn btn-red btn-sm" onclick="openPinModal()" style="align-self:flex-end;">🔓 Editar</button>
             </div>
@@ -1003,8 +1098,11 @@
             </div>
             <div class="form-row">
                 <div class="fg">
-                    <label>Monto</label>
-                    <input type="number" id="gastoMont" placeholder="0">
+                    <label>Monto del gasto</label>
+                    <div class="money-input-wrap">
+                        <span class="prefix">$</span>
+                        <input type="text" id="gastoMont" placeholder="$0" inputmode="numeric">
+                    </div>
                 </div>
                 <div class="fg">
                     <label>Categoría</label>
@@ -1013,13 +1111,14 @@
                         <option value="combustible">⛽ Combustible</option>
                         <option value="servicios">💡 Servicios</option>
                         <option value="mantenimiento">🔧 Mantenimiento</option>
+                        <option value="gaseosas">🥤 Gaseosas/Bebidas</option>
                         <option value="otro">📋 Otro</option>
                     </select>
                 </div>
             </div>
             <div class="fg">
                 <label>Especificación / Detalle</label>
-                <input type="text" id="gastoDet" placeholder="Ej: Compra de carbón, gas, etc.">
+                <input type="text" id="gastoDet" placeholder="Ej: Compra de carbón, gas, gaseosas, etc.">
             </div>
             <button class="btn btn-red btn-block" onclick="addGasto()">➕ Registrar Gasto</button>
         </div>
@@ -1037,6 +1136,61 @@
     <section id="pg-pend" class="page">
         <div id="pendAlert"></div>
         <div id="pendList"></div>
+    </section>
+
+    <!-- USO POLLOS SOBRANTES -->
+    <section id="pg-uso" class="page">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🍳 ¿Qué hacer con los pollos sobrantes?</div>
+            </div>
+            <p style="font-size:0.8rem;color:var(--gris-mid);margin-bottom:14px;">
+                Registra qué se hizo con los pollos que quedaron del día anterior o actual.
+            </p>
+
+            <div class="fg">
+                <label>Tipo de uso</label>
+                <div class="pay-opts" style="grid-template-columns: 1fr 1fr;">
+                    <div class="pay-opt" onclick="selUsoType('pasteles')" id="usoPasteles">
+                        <div class="po-i">🥧</div>
+                        <div class="po-t">Pasteles</div>
+                    </div>
+                    <div class="pay-opt" onclick="selUsoType('calentar_vender')" id="usoCalentar">
+                        <div class="po-i">♨️</div>
+                        <div class="po-t">Calentar y vender</div>
+                    </div>
+                    <div class="pay-opt" onclick="selUsoType('refrigerar')" id="usoRefrigerar">
+                        <div class="po-i">❄️</div>
+                        <div class="po-t">Refrigerar</div>
+                    </div>
+                    <div class="pay-opt" onclick="selUsoType('otro_uso')" id="usoOtro">
+                        <div class="po-i">📋</div>
+                        <div class="po-t">Otro uso</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="fg">
+                    <label>Cantidad de pollos usados</label>
+                    <input type="number" id="usoQty" placeholder="0" min="0" step="0.25">
+                </div>
+            </div>
+
+            <div class="fg">
+                <label>Detalle / Nota</label>
+                <input type="text" id="usoDetalle" placeholder="Ej: Se hicieron 15 pasteles de pollo">
+            </div>
+
+            <button class="btn btn-red btn-block" onclick="addUsoPollo()">📝 Registrar uso</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📋 Historial de uso de pollos</div>
+            </div>
+            <div id="usoHistory"></div>
+        </div>
     </section>
 
     <!-- INVENTARIO -->
@@ -1071,7 +1225,10 @@
             <div class="form-row">
                 <div class="fg">
                     <label>Precio</label>
-                    <input type="number" id="bevPrice" value="8000">
+                    <div class="money-input-wrap">
+                        <span class="prefix">$</span>
+                        <input type="text" id="bevPrice" placeholder="$0" inputmode="numeric">
+                    </div>
                 </div>
                 <div class="fg">
                     <label>Stock</label>
@@ -1096,7 +1253,8 @@
     <button class="nav-item" onclick="goPage('pos')"><span class="ni-icon">🛒</span><span class="ni-label">Vender</span></button>
     <button class="nav-item" onclick="goPage('caja')"><span class="ni-icon">💰</span><span class="ni-label">Caja</span></button>
     <button class="nav-item" onclick="goPage('pend')"><span class="ni-icon">⏳</span><span class="ni-label">Pendientes</span><span class="nav-badge" id="pendBadge" style="display:none">0</span></button>
-    <button class="nav-item" onclick="goPage('inv')"><span class="ni-icon">📦</span><span class="ni-label">Inventario</span></button>
+    <button class="nav-item" onclick="goPage('uso')"><span class="ni-icon">🍳</span><span class="ni-label">Uso</span></button>
+    <button class="nav-item" onclick="goPage('inv')"><span class="ni-icon">📦</span><span class="ni-label">Inv.</span></button>
 </nav>
 
 <!-- ===== MODAL PIN ===== -->
@@ -1129,7 +1287,10 @@
             <div class="modal-title">🏦 Fondo de Caja Inicial</div>
             <div class="fg">
                 <label>Monto en caja al inicio del día</label>
-                <input type="number" id="cajaEditInput" placeholder="0">
+                <div class="money-input-wrap">
+                    <span class="prefix">$</span>
+                    <input type="text" id="cajaEditInput" placeholder="$0" inputmode="numeric">
+                </div>
             </div>
             <div class="btn-group">
                 <button class="btn btn-outline" onclick="closeMod('modCaja')">Cancelar</button>
@@ -1239,7 +1400,6 @@
 function cop(n) {
     if (n == null || isNaN(n)) return '$0';
     const num = Math.round(Number(n));
-    // Formato manual con puntos cada 3 dígitos de derecha a izquierda
     const str = num.toString();
     let result = '';
     let count = 0;
@@ -1253,10 +1413,210 @@ function cop(n) {
     return '$' + result;
 }
 
+/* Formatear input de dinero mientras escribe */
+function formatMoneyInput(value) {
+    // Quitar todo lo que no sea número
+    const num = value.replace(/\D/g, '');
+    if (!num) return '';
+    // Formatear con puntos
+    let result = '';
+    let count = 0;
+    for (let i = num.length - 1; i >= 0; i--) {
+        if (count > 0 && count % 3 === 0) {
+            result = '.' + result;
+        }
+        result = num[i] + result;
+        count++;
+    }
+    return result;
+}
+
+function getMoneyValue(inputEl) {
+    // Obtener valor numérico limpio del input formateado
+    if (!inputEl) return 0;
+    const raw = inputEl.value.replace(/\D/g, '');
+    return parseInt(raw) || 0;
+}
+
 /* ============================================
-   ESTADO
+   FIREBASE - SINCRONIZACIÓN EN TIEMPO REAL
    ============================================ */
-const APP_KEY = 'plazoletaPOS_v5';
+
+// ===== CONFIGURACIÓN DE FIREBASE =====
+// INSTRUCCIONES PARA CONFIGURAR:
+// 1. Ve a https://console.firebase.google.com/
+// 2. Crea un proyecto nuevo (gratis)
+// 3. Ve a "Realtime Database" > "Crear base de datos"
+// 4. Selecciona "Comenzar en modo de prueba"
+// 5. Ve a Configuración del proyecto > General
+// 6. En "Tus apps", haz clic en el icono web (</>)
+// 7. Registra la app y copia el objeto firebaseConfig
+// 8. Reemplaza el objeto de abajo con tus datos
+
+const firebaseConfig = {
+    // REEMPLAZA ESTO CON TU CONFIGURACIÓN DE FIREBASE
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_PROYECTO.firebaseapp.com",
+    databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+    projectId: "TU_PROYECTO",
+    storageBucket: "TU_PROYECTO.appspot.com",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+};
+
+// Estado de sincronización
+let isFirebaseReady = false;
+let db = null;
+let dbRef = null;
+
+// Inicializar Firebase
+async function initFirebase() {
+    try {
+        // Cargar Firebase SDK dinámicamente
+        const appScript = document.createElement('script');
+        appScript.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
+        document.head.appendChild(appScript);
+
+        const dbScript = document.createElement('script');
+        dbScript.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
+        dbScript.onload = async () => {
+            try {
+                const app = firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+
+                // Verificar conexión
+                const connectedRef = db.ref('.info/connected');
+                connectedRef.on('value', (snap) => {
+                    const connected = snap.val();
+                    const bar = document.getElementById('syncBar');
+                    const txt = document.getElementById('syncText');
+                    if (connected) {
+                        bar.classList.remove('offline');
+                        txt.textContent = '✅ Sincronizado en tiempo real';
+                    } else {
+                        bar.classList.add('offline');
+                        txt.textContent = '⚠️ Sin conexión - Guardando local';
+                    }
+                });
+
+                // Configurar referencia del día
+                const dayKey = 'pos_' + todayStr();
+                dbRef = db.ref('plazoleta/' + dayKey);
+
+                // Escuchar cambios remotos
+                dbRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        applyRemoteData(data);
+                    }
+                }, (error) => {
+                    console.error('Firebase error:', error);
+                    setOfflineMode();
+                });
+
+                isFirebaseReady = true;
+                updateSyncStatus(true);
+
+                // Enviar datos locales iniciales
+                pushLocalToFirebase();
+
+            } catch(e) {
+                console.error('Firebase init error:', e);
+                setOfflineMode();
+            }
+        };
+        dbScript.onerror = () => {
+            setOfflineMode();
+        };
+        document.head.appendChild(dbScript);
+
+    } catch(e) {
+        setOfflineMode();
+    }
+}
+
+function updateSyncStatus(online) {
+    const bar = document.getElementById('syncBar');
+    const txt = document.getElementById('syncText');
+    if (online) {
+        bar.classList.remove('offline');
+        txt.textContent = '✅ Sincronizado en tiempo real';
+    } else {
+        bar.classList.add('offline');
+        txt.textContent = '⚠️ Modo local - Los datos solo se guardan en este dispositivo';
+    }
+}
+
+function setOfflineMode() {
+    isFirebaseReady = false;
+    updateSyncStatus(false);
+}
+
+function pushLocalToFirebase() {
+    if (!isFirebaseReady || !dbRef) return;
+
+    const data = {
+        cajaInicial: S.cajaInicial,
+        pollosPrep: S.pollosPrep,
+        pollosCounter: S.pollosCounter,
+        sales: S.sales,
+        gastos: S.gastos,
+        beverages: S.beverages,
+        saleCounter: S.saleCounter,
+        bevCounter: S.bevCounter,
+        pollosUso: S.pollosUso || [],
+        usoCounter: S.usoCounter || 1,
+        lastUpdate: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    dbRef.set(data).catch(err => {
+        console.error('Error pushing to Firebase:', err);
+    });
+}
+
+function applyRemoteData(data) {
+    // Aplicar datos remotos solo si son más recientes o si no hay datos locales
+    const localLastUpdate = S.lastUpdate || 0;
+    const remoteLastUpdate = data.lastUpdate || 0;
+
+    if (remoteLastUpdate >= localLastUpdate) {
+        const changed = (
+            JSON.stringify(S.cajaInicial) !== JSON.stringify(data.cajaInicial) ||
+            JSON.stringify(S.pollosPrep) !== JSON.stringify(data.pollosPrep) ||
+            JSON.stringify(S.sales) !== JSON.stringify(data.sales) ||
+            JSON.stringify(S.gastos) !== JSON.stringify(data.gastos) ||
+            JSON.stringify(S.beverages) !== JSON.stringify(data.beverages) ||
+            JSON.stringify(S.pollosUso || []) !== JSON.stringify(data.pollosUso || [])
+        );
+
+        if (changed) {
+            S.cajaInicial = data.cajaInicial || 0;
+            S.pollosPrep = data.pollosPrep || [];
+            S.pollosCounter = data.pollosCounter || 1;
+            S.sales = data.sales || [];
+            S.gastos = data.gastos || [];
+            S.beverages = data.beverages || [];
+            S.saleCounter = data.saleCounter || 1;
+            S.bevCounter = data.bevCounter || 12;
+            S.pollosUso = data.pollosUso || [];
+            S.usoCounter = data.usoCounter || 1;
+            S.lastUpdate = remoteLastUpdate;
+
+            saveLocal();
+            // Re-render current page
+            const activePage = document.querySelector('.page.active');
+            if (activePage) {
+                const pgId = activePage.id.replace('pg-', '');
+                render(pgId);
+            }
+        }
+    }
+}
+
+/* ============================================
+   ALMACENAMIENTO LOCAL (FALLBACK)
+   ============================================ */
+const APP_KEY = 'plazoletaPOS_v6';
 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 
@@ -1284,13 +1644,16 @@ function defaultState() {
         saleCounter: 1,
         bevCounter: 12,
         cart: [],
-        selPay: 'efectivo',
+        selPay: null,        // null = no seleccionado
         selStatus: 'pagado',
         selPendPay: null,
         selAllPay: null,
         pendingSaleId: null,
         pendingPersonName: null,
-        detailSaleId: null
+        detailSaleId: null,
+        pollosUso: [],
+        usoCounter: 1,
+        lastUpdate: 0
     };
 }
 
@@ -1301,9 +1664,12 @@ function load() {
             const st = JSON.parse(s);
             if (st.date !== todayStr()) {
                 const prevBev = st.beverages || [];
+                const prevPollosUso = st.pollosUso || [];
                 const ns = defaultState();
                 ns.beverages = prevBev;
                 ns.bevCounter = prevBev.length > 0 ? Math.max(...prevBev.map(b=>b.id)) + 1 : 12;
+                ns.pollosUso = prevPollosUso;
+                ns.usoCounter = prevPollosUso.length > 0 ? Math.max(...prevPollosUso.map(u=>u.id||0)) + 1 : 1;
                 toast('🌅 Nuevo día reiniciado','info');
                 return ns;
             }
@@ -1313,8 +1679,14 @@ function load() {
     return defaultState();
 }
 
-function save() {
+function saveLocal() {
     try { localStorage.setItem(APP_KEY, JSON.stringify(S)); } catch(e) {}
+}
+
+function save() {
+    S.lastUpdate = Date.now();
+    saveLocal();
+    pushLocalToFirebase();
 }
 
 let S = load();
@@ -1339,9 +1711,6 @@ function getTotalSoldChickens() {
     let total = 0;
     S.sales.forEach(sale => {
         sale.items.forEach(item => {
-            // Buscar el costo en pollo de este producto
-            const chickenProd = CHICKEN.find(c => c.id === item.name || c.name === item.name);
-            // Mapeo por nombre
             if (item.name === 'Pollo Entero') total += 1 * item.qty;
             else if (item.name === '½ Pollo') total += 0.5 * item.qty;
             else if (item.name === '¼ Pollo') total += 0.25 * item.qty;
@@ -1350,8 +1719,12 @@ function getTotalSoldChickens() {
     return Math.round(total * 100) / 100;
 }
 
+function getTotalUsedChickens() {
+    return (S.pollosUso || []).reduce((s, u) => s + (u.qty || 0), 0);
+}
+
 function getRemainingChickens() {
-    const remaining = getTotalPrepared() - getTotalSoldChickens();
+    const remaining = getTotalPrepared() - getTotalSoldChickens() - getTotalUsedChickens();
     return Math.round(remaining * 100) / 100;
 }
 
@@ -1362,7 +1735,7 @@ function goPage(pg) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     document.getElementById('pg-'+pg).classList.add('active');
-    const map = {dash:0,pos:1,caja:2,pend:3,inv:4};
+    const map = {dash:0,pos:1,caja:2,pend:3,uso:4,inv:5};
     document.querySelectorAll('.nav-item')[map[pg]]?.classList.add('active');
     render(pg);
     window.scrollTo(0,0);
@@ -1374,6 +1747,7 @@ function render(pg) {
         case 'pos': rPOS(); break;
         case 'caja': rCaja(); break;
         case 'pend': rPend(); break;
+        case 'uso': rUso(); break;
         case 'inv': rInv(); break;
     }
 }
@@ -1412,7 +1786,6 @@ function rDash() {
     document.getElementById('hdrDate').textContent = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short'});
     document.getElementById('dashDate').textContent = nowDateStr();
 
-    // Pollos
     const prepared = getTotalPrepared();
     const remaining = getRemainingChickens();
 
@@ -1422,7 +1795,6 @@ function rDash() {
     document.getElementById('dashPrepCount').textContent = prepared;
     document.getElementById('dashRemainCount').textContent = remaining;
 
-    // Alertas
     const alertDiv = document.getElementById('dashAlert');
     if (remaining <= 0 && prepared > 0) {
         alertDiv.innerHTML = '<div class="alert danger">🚨 ¡No quedan pollos! Prepara más.</div>';
@@ -1434,7 +1806,6 @@ function rDash() {
         alertDiv.innerHTML = '<div class="alert ok">✅ ' + remaining + ' pollos disponibles para la venta</div>';
     }
 
-    // Stats
     const pagadas = S.sales.filter(s => s.status==='pagado');
     const pendientes = S.sales.filter(s => s.status==='pendiente');
     const totVentas = pagadas.reduce((s,v) => s+v.total, 0);
@@ -1449,12 +1820,10 @@ function rDash() {
         <div class="stat-card green"><div class="stat-num">${cop(neto)}</div><div class="stat-label">Neto del día</div></div>
     `;
 
-    // Badge pendientes
     const badge = document.getElementById('pendBadge');
     if (pendientes.length > 0) { badge.style.display='flex'; badge.textContent = pendientes.length; }
     else { badge.style.display='none'; }
 
-    // Últimas ventas
     const recent = [...S.sales].reverse().slice(0, 8);
     const div = document.getElementById('dashSales');
     if (recent.length === 0) {
@@ -1499,6 +1868,19 @@ function addPollosPrep() {
    POS
    ============================================ */
 function rPOS() {
+    // Reset checkout defaults
+    S.selPay = null;
+    S.selStatus = 'pagado';
+    document.getElementById('pEf').classList.remove('sel');
+    document.getElementById('pTr').classList.remove('sel');
+    document.getElementById('sPg').classList.add('sel');
+    document.getElementById('sPn').classList.remove('sel');
+    document.getElementById('efSection').classList.add('hidden');
+    document.getElementById('pEf').style.opacity = '1';
+    document.getElementById('pTr').style.opacity = '1';
+    document.getElementById('cashRec').value = '';
+    document.getElementById('changeBox').innerHTML = '';
+
     const cg = document.getElementById('chickenGrid');
     cg.innerHTML = CHICKEN.map(p => `
         <button class="prod-btn chicken" onclick="addCart('${p.id}')">
@@ -1547,7 +1929,6 @@ function addCart(id) {
         if (b && b.stock<=0) { toast('❌ Sin stock','error'); return; }
     }
 
-    // Verificar si hay pollos restantes
     if (prod.type==='chicken') {
         const remaining = getRemainingChickens();
         const cartChickenNeeded = S.cart.reduce((s,i) => {
@@ -1653,14 +2034,17 @@ function rCart() {
 }
 
 /* ============================================
-   CHECKOUT
+   CHECKOUT - CORREGIDO
    ============================================ */
 function selPay(m) {
     S.selPay = m;
     document.getElementById('pEf').classList.toggle('sel', m==='efectivo');
     document.getElementById('pTr').classList.toggle('sel', m==='transferencia');
     document.getElementById('efSection').classList.toggle('hidden', m!=='efectivo');
-    if (m!=='efectivo') document.getElementById('changeBox').innerHTML = '';
+    if (m!=='efectivo') {
+        document.getElementById('changeBox').innerHTML = '';
+        document.getElementById('cashRec').value = '';
+    }
 }
 
 function selStatus(st) {
@@ -1669,6 +2053,7 @@ function selStatus(st) {
     document.getElementById('sPn').classList.toggle('sel', st==='pendiente');
 
     if (st==='pendiente') {
+        // Ocultar opciones de pago visualmente pero NO cambiar selPay
         document.getElementById('pEf').style.opacity = '0.35';
         document.getElementById('pTr').style.opacity = '0.35';
     } else {
@@ -1679,7 +2064,7 @@ function selStatus(st) {
 
 function calcChange() {
     const t = cartTotal();
-    const r = parseFloat(document.getElementById('cashRec').value) || 0;
+    const r = getMoneyValue(document.getElementById('cashRec'));
     const ch = r - t;
     const box = document.getElementById('changeBox');
 
@@ -1699,15 +2084,46 @@ function confirmSale() {
 
     const cn = document.getElementById('custName').value.trim() || 'Cliente';
 
-    if (S.selStatus==='pagado' && S.selPay==='efectivo') {
-        const r = parseFloat(document.getElementById('cashRec').value) || 0;
+    // Si está pendiente, no validar método de pago
+    if (S.selStatus === 'pendiente') {
+        // Confirmar como pendiente
+        const total = cartTotal();
+        document.getElementById('cfTitle').textContent = '⏳ Pedido Pendiente';
+
+        const itemsHtml = S.cart.map(i =>
+            `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.8rem;"><span>${i.qty}x ${i.name}</span><span>${cop(i.price*i.qty)}</span></div>`
+        ).join('');
+
+        document.getElementById('cfContent').innerHTML = `
+            <div style="text-align:center;margin-bottom:10px;">
+                <div style="font-size:0.7rem;color:var(--gris-mid);">Cliente</div>
+                <div style="font-size:1rem;font-weight:800;">${cn}</div>
+            </div>
+            ${itemsHtml}
+            <div style="text-align:center;font-size:1.3rem;font-weight:900;color:var(--rojo);margin-top:10px;">
+                Total: ${cop(total)}
+            </div>
+            <div style="text-align:center;font-size:0.75rem;color:var(--naranja);margin-top:8px;font-weight:700;">⏳ Pendiente de pago</div>
+        `;
+
+        openMod('modConfirm');
+        return;
+    }
+
+    // Si está pagado, validar método de pago
+    if (!S.selPay || (S.selPay !== 'efectivo' && S.selPay !== 'transferencia')) {
+        toast('❌ Selecciona un método de pago','error');
+        return;
+    }
+
+    if (S.selPay === 'efectivo') {
+        const r = getMoneyValue(document.getElementById('cashRec'));
         if (r < cartTotal()) { toast('❌ Monto insuficiente','error'); return; }
     }
 
+    // Confirmar venta pagada
     const total = cartTotal();
-
-    document.getElementById('cfTitle').textContent =
-        S.selStatus==='pendiente' ? '⏳ Pedido Pendiente' : '✅ Confirmar Venta';
+    document.getElementById('cfTitle').textContent = '✅ Confirmar Venta';
 
     const itemsHtml = S.cart.map(i =>
         `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.8rem;"><span>${i.qty}x ${i.name}</span><span>${cop(i.price*i.qty)}</span></div>`
@@ -1719,20 +2135,17 @@ function confirmSale() {
             <div style="font-size:1rem;font-weight:800;">${cn}</div>
         </div>
         ${itemsHtml}
-        <div style="text-align:center;font-size:1.3rem;font-weight:900;color:var(--rojo);margin-top:10px;">
+        <div style="text-align:center;font-size:1.3rem;font-weight:900;color:var(--verde);margin-top:10px;">
             Total: ${cop(total)}
+        </div>
+        <div style="text-align:center;font-size:0.75rem;color:var(--gris-mid);margin-top:6px;">
+            Pago: ${S.selPay==='efectivo'?'💵 Efectivo':'📱 Transferencia'}
         </div>`;
 
-    if (S.selStatus==='pagado') {
-        detail += `<div style="text-align:center;font-size:0.7rem;color:var(--gris-mid);margin-top:6px;">
-            Pago: ${S.selPay==='efectivo'?'💵 Efectivo':'📱 Transferencia'}</div>`;
-        if (S.selPay==='efectivo') {
-            const r = parseFloat(document.getElementById('cashRec').value) || 0;
-            detail += `<div style="text-align:center;font-size:0.7rem;margin-top:3px;">
-                Recibido: ${cop(r)} → Cambio: <b>${cop(r-total)}</b></div>`;
-        }
-    } else {
-        detail += '<div style="text-align:center;font-size:0.75rem;color:var(--naranja);margin-top:8px;font-weight:700;">⏳ Pendiente de pago</div>';
+    if (S.selPay==='efectivo') {
+        const r = getMoneyValue(document.getElementById('cashRec'));
+        detail += `<div style="text-align:center;font-size:0.75rem;margin-top:3px;">
+            Recibido: ${cop(r)} → Cambio: <b>${cop(r-total)}</b></div>`;
     }
 
     document.getElementById('cfContent').innerHTML = detail;
@@ -1742,7 +2155,7 @@ function confirmSale() {
 function executeSale() {
     const cn = document.getElementById('custName').value.trim() || 'Cliente';
     const t = cartTotal();
-    const r = parseFloat(document.getElementById('cashRec').value) || 0;
+    const r = getMoneyValue(document.getElementById('cashRec'));
 
     // Descontar bebidas
     S.cart.forEach(item => {
@@ -1759,9 +2172,11 @@ function executeSale() {
         customerName: cn,
         items: S.cart.map(i=>({name:i.name, qty:i.qty, price:i.price, icon:i.icon})),
         total: t,
-        paymentMethod: S.selStatus==='pendiente' ? 'pendiente' : S.selPay,
+        // CORRECCIÓN: Si status es pendiente, paymentMethod es 'pendiente'
+        // Si status es pagado, paymentMethod es lo que se seleccionó (efectivo o transferencia)
+        paymentMethod: S.selStatus === 'pendiente' ? 'pendiente' : S.selPay,
         status: S.selStatus,
-        cashReceived: r,
+        cashReceived: S.selPay==='efectivo' && S.selStatus==='pagado' ? r : 0,
         change: S.selPay==='efectivo' && S.selStatus==='pagado' ? Math.max(0, r-t) : 0,
         ts: Date.now()
     };
@@ -1831,22 +2246,17 @@ function shareReceipt() {
 }
 
 function sendToRawBT(text) {
-    // Método 1: Web Share API (RawBT aparece como opción en Android)
     if (navigator.share) {
         const blob = new Blob([text], {type: 'text/plain'});
         const file = new File([blob], 'factura_plazoleta.txt', {type: 'text/plain'});
-
         navigator.share({
             title: 'Factura - La Plazoleta del Pollo',
             text: text,
             files: [file]
         }).then(() => {
-            toast('✅ Enviado a RawBT','success');
+            toast('✅ Enviado','success');
         }).catch((err) => {
-            // Si el usuario cancela o falla, copiar al portapapeles
-            if (err.name !== 'AbortError') {
-                copyText(text);
-            }
+            if (err.name !== 'AbortError') copyText(text);
         });
     } else {
         copyText(text);
@@ -1857,9 +2267,7 @@ function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
             toast('📋 Copiado. Ábrelo en RawBT y pega.','success');
-        }).catch(() => {
-            fallbackCopy(text);
-        });
+        }).catch(() => { fallbackCopy(text); });
     } else {
         fallbackCopy(text);
     }
@@ -1875,10 +2283,8 @@ function fallbackCopy(text) {
         document.execCommand('copy');
         toast('📋 Copiado. Pégalo en RawBT.','success');
     } catch(e) {
-        // Último recurso: mostrar en textarea seleccionable
         const win = window.open('', '_blank');
         win.document.write(`<textarea style="width:100%;height:100%;font-family:monospace;font-size:14px;">${text}</textarea>`);
-        toast('⚠️ Selecciona y copia el texto','warn');
     }
     document.body.removeChild(ta);
 }
@@ -1911,7 +2317,10 @@ function rCaja() {
     const totalCaja = S.cajaInicial + totVentas - totGastos;
 
     document.getElementById('cajaTotal').textContent = cop(totalCaja);
-    document.getElementById('cajaIniInput').value = S.cajaInicial > 0 ? S.cajaInicial : '';
+
+    // Formatear el input de caja inicial
+    const cajaInput = document.getElementById('cajaIniInput');
+    cajaInput.value = S.cajaInicial > 0 ? formatMoneyInput(S.cajaInicial.toString()) : '';
 
     const ef = pagadas.filter(s=>s.paymentMethod==='efectivo').reduce((s,v)=>s+v.total,0);
     const tr = pagadas.filter(s=>s.paymentMethod==='transferencia').reduce((s,v)=>s+v.total,0);
@@ -1956,7 +2365,7 @@ function verifyPin() {
 
     if (pin === '1478') {
         closeMod('modPin');
-        document.getElementById('cajaEditInput').value = S.cajaInicial || '';
+        document.getElementById('cajaEditInput').value = S.cajaInicial > 0 ? formatMoneyInput(S.cajaInicial.toString()) : '';
         openMod('modCaja');
     } else {
         document.getElementById('pinError').style.display = 'block';
@@ -1967,8 +2376,8 @@ function verifyPin() {
 }
 
 function saveCajaInicial() {
-    const v = parseFloat(document.getElementById('cajaEditInput').value);
-    if (isNaN(v) || v < 0) { toast('❌ Monto inválido','error'); return; }
+    const v = getMoneyValue(document.getElementById('cajaEditInput'));
+    if (v < 0) { toast('❌ Monto inválido','error'); return; }
     S.cajaInicial = v;
     save();
     closeMod('modCaja');
@@ -1976,20 +2385,21 @@ function saveCajaInicial() {
     toast('✅ Fondo de caja: '+cop(v),'success');
 }
 
-/* ===== GASTOS ===== */
+/* ===== GASTOS CON FORMATEO ===== */
 function addGasto() {
-    const m = parseFloat(document.getElementById('gastoMont').value);
+    const m = getMoneyValue(document.getElementById('gastoMont'));
     const cat = document.getElementById('gastoCat').value;
     const det = document.getElementById('gastoDet').value.trim();
 
-    if (!m || m <= 0) { toast('❌ Monto inválido','error'); return; }
-    if (!det) { toast('❌ Ingresa especificación','error'); return; }
+    if (!m || m <= 0) { toast('❌ Ingresa un monto válido','error'); return; }
+    if (!det) { toast('❌ Ingresa una especificación','error'); return; }
 
     const cats = {
         insumos:{icon:'🥘',name:'Insumos'},
         combustible:{icon:'⛽',name:'Combustible'},
         servicios:{icon:'💡',name:'Servicios'},
         mantenimiento:{icon:'🔧',name:'Mantenimiento'},
+        gaseosas:{icon:'🥤',name:'Gaseosas/Bebidas'},
         otro:{icon:'📋',name:'Otro'}
     };
 
@@ -2041,7 +2451,6 @@ function rPend() {
 
     const alert = document.getElementById('pendAlert');
     if (pends.length > 0) {
-        // Contar personas únicas
         const personas = [...new Set(pends.map(p=>p.customerName.toLowerCase()))];
         alert.innerHTML = `<div class="alert warn">⏳ <span><b>${personas.length}</b> persona(s) deben — <b>${pends.length}</b> pedido(s) — Total: <b>${cop(totP)}</b></span></div>`;
     } else {
@@ -2054,15 +2463,11 @@ function rPend() {
         return;
     }
 
-    // Agrupar por nombre de cliente (case insensitive)
     const grouped = {};
     pends.forEach(sale => {
         const key = sale.customerName.toLowerCase().trim();
         if (!grouped[key]) {
-            grouped[key] = {
-                displayName: sale.customerName,
-                sales: []
-            };
+            grouped[key] = { displayName: sale.customerName, sales: [] };
         }
         grouped[key].sales.push(sale);
     });
@@ -2107,7 +2512,6 @@ function rPend() {
     list.innerHTML = html;
 }
 
-/* Cobrar pedido individual */
 function openPendPay(id) {
     const sale = S.sales.find(s=>s.id===id);
     if (!sale) return;
@@ -2151,7 +2555,6 @@ function executePendPay() {
     toast('✅ Pedido '+sale.id+' cobrado','success');
 }
 
-/* Cobrar TODO de una persona */
 function openPayAll(personKey) {
     const pends = S.sales.filter(s => s.status==='pendiente' && s.customerName.toLowerCase().trim() === personKey);
     if (pends.length === 0) return;
@@ -2213,6 +2616,90 @@ function executePayAll() {
 }
 
 /* ============================================
+   USO DE POLLOS SOBRANTES
+   ============================================ */
+function selUsoType(type) {
+    ['usoPasteles','usoCalentar','usoRefrigerar','usoOtro'].forEach(id => {
+        document.getElementById(id).classList.remove('sel');
+    });
+
+    const map = {
+        pasteles: 'usoPasteles',
+        calentar_vender: 'usoCalentar',
+        refrigerar: 'usoRefrigerar',
+        otro_uso: 'usoOtro'
+    };
+
+    document.getElementById(map[type]).classList.add('sel');
+}
+
+function addUsoPollo() {
+    const qty = parseFloat(document.getElementById('usoQty').value);
+    const detalle = document.getElementById('usoDetalle').value.trim();
+
+    // Determinar tipo seleccionado
+    let tipo = null;
+    if (document.getElementById('usoPasteles').classList.contains('sel')) tipo = 'pasteles';
+    else if (document.getElementById('usoCalentar').classList.contains('sel')) tipo = 'calentar_vender';
+    else if (document.getElementById('usoRefrigerar').classList.contains('sel')) tipo = 'refrigerar';
+    else if (document.getElementById('usoOtro').classList.contains('sel')) tipo = 'otro_uso';
+
+    if (!tipo) { toast('❌ Selecciona un tipo de uso','error'); return; }
+    if (!qty || qty <= 0) { toast('❌ Ingresa una cantidad válida','error'); return; }
+
+    const tipos = {
+        pasteles: {icon:'🥧', name:'Se hicieron pasteles'},
+        calentar_vender: {icon:'♨️', name:'Calentar y vender'},
+        refrigerar: {icon:'❄️', name:'Refrigerar'},
+        otro_uso: {icon:'📋', name:'Otro uso'}
+    };
+
+    if (!S.pollosUso) S.pollosUso = [];
+    if (!S.usoCounter) S.usoCounter = 1;
+
+    S.pollosUso.push({
+        id: S.usoCounter++,
+        type: tipo,
+        typeName: tipos[tipo].name,
+        typeIcon: tipos[tipo].icon,
+        qty: qty,
+        detail: detalle,
+        time: nowTime()
+    });
+
+    document.getElementById('usoQty').value = '';
+    document.getElementById('usoDetalle').value = '';
+    ['usoPasteles','usoCalentar','usoRefrigerar','usoOtro'].forEach(id => {
+        document.getElementById(id).classList.remove('sel');
+    });
+
+    save();
+    rUso();
+    toast('✅ Uso de pollos registrado','success');
+}
+
+function rUso() {
+    const history = document.getElementById('usoHistory');
+    const usos = S.pollosUso || [];
+
+    if (usos.length === 0) {
+        history.innerHTML = '<div class="cart-empty"><div class="ce-i">🍳</div><p>No hay registros de uso</p></div>';
+        return;
+    }
+
+    history.innerHTML = [...usos].reverse().map(u => `
+        <div class="uso-card">
+            <div class="uso-header">
+                <div class="uso-type">${u.typeIcon} ${u.typeName}</div>
+                <div class="uso-qty">${u.qty} pollo${u.qty > 1 ? 's' : ''}</div>
+            </div>
+            ${u.detail ? `<div class="uso-detail">${u.detail}</div>` : ''}
+            <div class="uso-detail" style="margin-top:4px;">🕐 ${u.time}</div>
+        </div>
+    `).join('');
+}
+
+/* ============================================
    INVENTARIO BEBIDAS
    ============================================ */
 function rInv() {
@@ -2263,7 +2750,7 @@ function rInv() {
 
 function addBev() {
     const n = document.getElementById('bevName').value.trim();
-    const p = parseFloat(document.getElementById('bevPrice').value);
+    const p = getMoneyValue(document.getElementById('bevPrice'));
     const s = parseInt(document.getElementById('bevStock').value);
 
     if (!n) { toast('❌ Ingresa nombre','error'); return; }
@@ -2274,7 +2761,7 @@ function addBev() {
     S.beverages.push({id: S.bevCounter++, name:n, price:p, stock:s, icon:icons[Math.floor(Math.random()*icons.length)]});
 
     document.getElementById('bevName').value = '';
-    document.getElementById('bevPrice').value = '8000';
+    document.getElementById('bevPrice').value = '';
     document.getElementById('bevStock').value = '24';
     save();
     rInv();
@@ -2294,10 +2781,40 @@ function delBev(id) {
 }
 
 /* ============================================
+   INPUT MONEY FORMATTER - EVENT LISTENERS
+   ============================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Formatear inputs de dinero mientras se escribe
+    const moneyInputs = [
+        'gastoMont',
+        'cajaEditInput',
+        'bevPrice',
+        'cashRec'
+    ];
+
+    moneyInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function() {
+                const cursorPos = this.selectionStart;
+                const oldLen = this.value.length;
+                const raw = this.value.replace(/\D/g, '');
+                this.value = formatMoneyInput(raw);
+                const newLen = this.value.length;
+                // Mantener posición del cursor
+                const newPos = cursorPos + (newLen - oldLen);
+                this.setSelectionRange(newPos, newPos);
+            });
+        }
+    });
+});
+
+/* ============================================
    INIT
    ============================================ */
 document.addEventListener('DOMContentLoaded', () => {
     rDash();
+    initFirebase();
 });
 </script>
 </body>
