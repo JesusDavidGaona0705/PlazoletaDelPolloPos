@@ -18,10 +18,13 @@
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
         body { font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif; background: var(--fondo); color: var(--gris); min-height: 100vh; padding-bottom: 72px; font-size: 14px; }
         
-        .sync-bar { background: var(--verde-bg); padding: 4px 12px; text-align: center; font-size: 0.6rem; color: var(--verde); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .sync-bar { background: var(--verde-bg); padding: 4px 12px; text-align: center; font-size: 0.6rem; color: var(--verde); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.3s; }
         .sync-bar.offline { background: var(--rojo-bg); color: var(--rojo); }
-        .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--verde); display: inline-block; }
-        .sync-bar.offline .sync-dot { background: var(--rojo); }
+        .sync-bar.syncing { background: var(--amarillo-bg); color: var(--naranja); }
+        .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--verde); display: inline-block; animation: pulse 2s infinite; }
+        .sync-bar.offline .sync-dot { background: var(--rojo); animation: none; }
+        .sync-bar.syncing .sync-dot { background: var(--naranja); }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
         .header { background: linear-gradient(135deg, var(--rojo) 0%, #B71C1C 100%); color: white; position: sticky; top: 0; z-index: 1000; box-shadow: var(--sombra-lg); }
         .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 8px; }
@@ -290,7 +293,6 @@
 
         .prod-btn .drink-logo { font-size: 1.8rem; margin-bottom: 2px; }
 
-        /* Pollo entry edit */
         .pollos-entry { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; gap: 10px; }
         .pollos-entry:last-child { border-bottom: none; }
         .pollos-entry .pe-info { flex: 1; }
@@ -298,7 +300,6 @@
         .pollos-entry .pe-time { font-size: 0.65rem; color: var(--gris-mid); }
         .pollos-entry .pe-edit { background: none; border: 1px solid var(--gris-border); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
 
-        /* Edit log */
         .edit-log-item { padding: 10px; background: var(--fondo-alt); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--azul); }
         .edit-log-item .eli-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .edit-log-item .eli-sale { font-weight: 700; font-size: 0.8rem; }
@@ -312,7 +313,7 @@
 </head>
 <body>
 
-<div class="sync-bar" id="syncBar"><span class="sync-dot"></span><span id="syncText">Conectando...</span></div>
+<div class="sync-bar" id="syncBar"><span class="sync-dot"></span><span id="syncText">Conectando a Firebase...</span></div>
 
 <header class="header">
     <div class="header-inner">
@@ -481,7 +482,7 @@
                 <div class="fg"><label>Logo</label>
                     <select id="bevLogo">
                         <option value="🥤"> Gaseosa</option>
-                        <option value="🍺">🍺 Cerveza</option>
+                        <option value="🍺"> Cerveza</option>
                         <option value="💧">💧 Agua</option>
                         <option value="🧃"> Jugo</option>
                         <option value="🥛">🥛 Lácteo</option>
@@ -588,7 +589,7 @@ function getMoneyValue(inputEl) {
 }
 
 /* ============================================
-   FIREBASE
+   FIREBASE - SINCRONIZACIÓN EN TIEMPO REAL
    ============================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyAhmitx-UIJwWUYtO-cdIRHj-j4shbKkO4",
@@ -600,53 +601,174 @@ const firebaseConfig = {
   appId: "1:171480225663:web:bf82293ce40717d0972c4a",
   measurementId: "G-BBC04D246S"
 };
-let isFirebaseReady = false, db = null;
 
-async function initFirebase() {
-    try {
-        const s1 = document.createElement('script');
-        s1.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
-        document.head.appendChild(s1);
+let isFirebaseReady = false;
+let db = null;
+let dbRef = null;
+let isApplyingRemote = false;
+
+function initFirebase() {
+    if (typeof firebase !== 'undefined') {
+        setupFirebase();
+        return;
+    }
+    
+    const s1 = document.createElement('script');
+    s1.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
+    s1.onload = () => {
         const s2 = document.createElement('script');
         s2.src = 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
-        s2.onload = () => {
-            try {
-                const app = firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-                db.ref('.info/connected').on('value', snap => {
-                    const c = snap.val();
-                    document.getElementById('syncBar').classList.toggle('offline', !c);
-                    document.getElementById('syncText').textContent = c ? '✅ Sincronizado en tiempo real' : '⚠️ Sin conexión - Guardando local';
-                });
-                isFirebaseReady = true;
-                pushLocalToFirebase();
-            } catch(e) { setOfflineMode(); }
-        };
-        s2.onerror = () => setOfflineMode();
+        s2.onload = () => setupFirebase();
+        s2.onerror = () => { setOfflineMode(); };
         document.head.appendChild(s2);
-    } catch(e) { setOfflineMode(); }
+    };
+    s1.onerror = () => { setOfflineMode(); };
+    document.head.appendChild(s1);
 }
+
+function setupFirebase() {
+    try {
+        const app = firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        
+        // Escuchar conexión
+        db.ref('.info/connected').on('value', snap => {
+            const c = snap.val();
+            const bar = document.getElementById('syncBar');
+            const txt = document.getElementById('syncText');
+            if (c) {
+                bar.classList.remove('offline');
+                bar.classList.remove('syncing');
+                txt.textContent = '✅ Sincronizado en tiempo real';
+                isFirebaseReady = true;
+                loadFromFirebase();
+            } else {
+                bar.classList.add('offline');
+                txt.textContent = '⚠️ Sin conexión';
+                isFirebaseReady = false;
+            }
+        });
+        
+        // ESCUCHAR CAMBIOS EN TIEMPO REAL
+        const dayKey = 'pos_' + todayStr();
+        dbRef = db.ref('plazoleta/' + dayKey);
+        
+        dbRef.on('value', snapshot => {
+            if (!snapshot.exists()) return;
+            const data = snapshot.val();
+            if (isApplyingRemote) return;
+            applyRemoteData(data);
+        }, error => {
+            console.error('Firebase error:', error);
+            setOfflineMode();
+        });
+        
+    } catch(e) {
+        console.error('Firebase setup error:', e);
+        setOfflineMode();
+    }
+}
+
 function setOfflineMode() {
     isFirebaseReady = false;
     document.getElementById('syncBar').classList.add('offline');
     document.getElementById('syncText').textContent = '⚠️ Modo local';
 }
-function pushLocalToFirebase() {
-    if (!isFirebaseReady || !db) return;
-    const dayKey = 'pos_' + todayStr();
-    db.ref('plazoleta/' + dayKey).set({
-        cajaInicial: S.cajaInicial, pollosPrep: S.pollosPrep, pollosCounter: S.pollosCounter,
-        sales: S.sales, gastos: S.gastos, beverages: S.beverages, saleCounter: S.saleCounter,
-        bevCounter: S.bevCounter, pollosUso: S.pollosUso || [], usoCounter: S.usoCounter || 1,
-        sobrantes: S.sobrantes || 0, editLog: S.editLog || [],
+
+function loadFromFirebase() {
+    if (!isFirebaseReady || !dbRef) return;
+    const bar = document.getElementById('syncBar');
+    const txt = document.getElementById('syncText');
+    bar.classList.add('syncing');
+    txt.textContent = '🔄 Sincronizando...';
+    
+    dbRef.once('value').then(snapshot => {
+        if (snapshot.exists()) {
+            applyRemoteData(snapshot.val());
+        }
+        bar.classList.remove('syncing');
+        txt.textContent = '✅ Sincronizado en tiempo real';
+    }).catch(err => {
+        console.error('Error loading from Firebase:', err);
+        bar.classList.remove('syncing');
+    });
+}
+
+function applyRemoteData(data) {
+    if (!data) return;
+    isApplyingRemote = true;
+    
+    try {
+        const remoteSales = data.sales || [];
+        const localSales = S.sales || [];
+        
+        if (remoteSales.length !== localSales.length || 
+            JSON.stringify(remoteSales) !== JSON.stringify(localSales)) {
+            
+            S.cajaInicial = data.cajaInicial || 0;
+            S.pollosPrep = data.pollosPrep || [];
+            S.pollosCounter = data.pollosCounter || 1;
+            S.sales = remoteSales;
+            S.gastos = data.gastos || [];
+            S.beverages = data.beverages || [];
+            S.saleCounter = data.saleCounter || 1;
+            S.bevCounter = data.bevCounter || 12;
+            S.pollosUso = data.pollosUso || [];
+            S.usoCounter = data.usoCounter || 1;
+            S.sobrantes = data.sobrantes || 0;
+            S.editLog = data.editLog || [];
+            
+            saveLocal();
+            
+            const activePg = document.querySelector('.page.active');
+            if (activePg) {
+                render(activePg.id.replace('pg-', ''));
+            }
+            
+            const pc = remoteSales.filter(s => s.status === 'pendiente').length;
+            const badge = document.getElementById('pendBadge');
+            badge.style.display = pc > 0 ? 'flex' : 'none';
+            badge.textContent = pc;
+        }
+    } catch(e) {
+        console.error('Error aplicando datos:', e);
+    }
+    
+    isApplyingRemote = false;
+}
+
+function pushToFirebase() {
+    if (!isFirebaseReady || !dbRef) return;
+    
+    const bar = document.getElementById('syncBar');
+    bar.classList.add('syncing');
+    
+    dbRef.set({
+        cajaInicial: S.cajaInicial,
+        pollosPrep: S.pollosPrep,
+        pollosCounter: S.pollosCounter,
+        sales: S.sales,
+        gastos: S.gastos,
+        beverages: S.beverages,
+        saleCounter: S.saleCounter,
+        bevCounter: S.bevCounter,
+        pollosUso: S.pollosUso || [],
+        usoCounter: S.usoCounter || 1,
+        sobrantes: S.sobrantes || 0,
+        editLog: S.editLog || [],
         lastUpdate: firebase.database.ServerValue.TIMESTAMP
-    }).catch(() => {});
+    }).then(() => {
+        bar.classList.remove('syncing');
+    }).catch(err => {
+        console.error('Error pushing to Firebase:', err);
+        bar.classList.remove('syncing');
+    });
 }
 
 /* ============================================
-   ESTADO & PERSISTENCIA
+   ESTADO & PERSISTENCIA LOCAL
    ============================================ */
-const APP_KEY = 'plazoletaPOS_v9';
+const APP_KEY = 'plazoletaPOS_v10';
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function defaultState() {
     return { date: todayStr(), cajaInicial: 0, pollosPrep: [], pollosCounter: 1, sales: [], gastos: [],
@@ -662,11 +784,32 @@ function defaultState() {
         pollosUso: [], usoCounter: 1, sobrantes: 0, dayReset: false, editLog: [], lastUpdate: 0 };
 }
 function load() {
-    try { const s = localStorage.getItem(APP_KEY); if(s) { const st=JSON.parse(s); if(st.date!==todayStr()) { const pb=st.beverages||[]; const ns=defaultState(); ns.beverages=pb; ns.bevCounter=pb.length?Math.max(...pb.map(b=>b.id))+1:12; ns.sobrantes=st.sobrantes||0; toast('🌅 Nuevo día - Sobrantes: '+(st.sobrantes||0)+' pollos','info'); return ns; } return st; } } catch(e){}
+    try { 
+        const s = localStorage.getItem(APP_KEY); 
+        if(s) { 
+            const st=JSON.parse(s); 
+            if(st.date!==todayStr()) { 
+                const pb=st.beverages||[]; 
+                const ns=defaultState(); 
+                ns.beverages=pb; 
+                ns.bevCounter=pb.length?Math.max(...pb.map(b=>b.id))+1:12; 
+                ns.sobrantes=st.sobrantes||0; 
+                toast('🌅 Nuevo día - Sobrantes: '+(st.sobrantes||0)+' pollos','info'); 
+                return ns; 
+            } 
+            return st; 
+        } 
+    } catch(e){}
     return defaultState();
 }
-function saveLocal() { try { localStorage.setItem(APP_KEY, JSON.stringify(S)); } catch(e){} }
-function save() { S.lastUpdate = Date.now(); saveLocal(); pushLocalToFirebase(); }
+function saveLocal() { 
+    try { localStorage.setItem(APP_KEY, JSON.stringify(S)); } catch(e){} 
+}
+function save() { 
+    S.lastUpdate = Date.now(); 
+    saveLocal(); 
+    pushToFirebase(); 
+}
 let S = load();
 
 const CHICKEN = [
@@ -756,7 +899,6 @@ function rDash() {
             <div class="sale-amt">${cop(s.total)}</div>
         </div>`).join('');
 
-    // Edit log preview
     const logDiv = document.getElementById('dashEditLog');
     const recentLogs = (S.editLog || []).slice(-3).reverse();
     if (recentLogs.length === 0) {
@@ -828,7 +970,6 @@ function savePolloEdit() {
     if (p) {
         const oldQty = p.qty;
         p.qty = newQty;
-        // Registrar en log
         if (!S.editLog) S.editLog = [];
         S.editLog.push({
             id: Date.now(),
@@ -1237,7 +1378,7 @@ function executeReset() {
 }
 
 /* ============================================
-   VER TODAS / EDITAR FACTURAS CON AGREGAR PRODUCTOS
+   VER TODAS / EDITAR FACTURAS
    ============================================ */
 function showAllSales(){
     const list=document.getElementById('allSalesList'),all=[...S.sales].reverse();
@@ -1250,7 +1391,6 @@ let editingSaleId=null;
 function editSale(id){
     const sale=S.sales.find(s=>s.id===id);if(!sale)return;editingSaleId=id;
     
-    // Llenar selector de productos
     const select = document.getElementById('addProductSelect');
     let opts = '<option value="">Seleccionar...</option>';
     CHICKEN.forEach(c => { opts += `<option value="chicken_${c.id}">${c.icon} ${c.name} - ${cop(c.price)}</option>`; });
@@ -1268,7 +1408,6 @@ function editSale(id){
     window.editStatus=sale.status;window.editPay=sale.paymentMethod;window.editItems=JSON.parse(JSON.stringify(sale.items));
     openMod('modEditSale');
 }
-
 function selEditStatus(st){window.editStatus=st;document.getElementById('esPg').classList.toggle('sel',st==='pagado');document.getElementById('esPn').classList.toggle('sel',st==='pendiente');document.getElementById('epmSec').style.opacity=st==='pendiente'?'0.4':'1';}
 function selEditPay(m){window.editPay=m;document.getElementById('epEf').classList.toggle('sel',m==='efectivo');document.getElementById('epTr').classList.toggle('sel',m==='transferencia');}
 
@@ -1307,7 +1446,6 @@ function addProductToEdit() {
     document.getElementById('addProductQty').value = '1';
     document.getElementById('addProductSelect').value = '';
     
-    // Registrar en log
     if (!S.editLog) S.editLog = [];
     S.editLog.push({
         id: Date.now(),
@@ -1326,7 +1464,6 @@ function addProductToEdit() {
 function updateEditTotal() {
     const total = window.editItems.reduce((s,i) => s + (i.price * i.qty), 0);
     document.getElementById('editTotal').value = formatMoneyInput(total.toString());
-    // Re-render items
     const container = document.querySelector('#editSaleForm .edit-item-row')?.parentElement;
     if (container) {
         container.innerHTML = window.editItems.map((it,i)=>`<div class="edit-item-row"><span class="ei-icon">${it.icon}</span><div class="ei-info"><div class="ei-name">${it.name}</div><div style="font-size:0.7rem;color:var(--gris-mid);">${cop(it.price)} c/u</div></div><div class="ei-controls"><button onclick="editItemQty(${i},-1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button><span class="ei-qty">${it.qty}</span><button onclick="editItemQty(${i},1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div><button class="ei-del" onclick="removeEditItem(${i})">✕</button></div>`).join('');
@@ -1349,10 +1486,8 @@ function saveEditedSale(){
     
     if(sale.status==='pagado'&&!sale.payTime)sale.payTime=nowTime();
     
-    // Registrar cambios en log
     if (!S.editLog) S.editLog = [];
     let changes = [];
-    
     if (oldStatus !== sale.status) changes.push(`Estado: ${oldStatus} → ${sale.status}`);
     if (JSON.stringify(oldItems) !== JSON.stringify(sale.items)) {
         const removed = oldItems.filter(oi => !sale.items.some(ni => ni.name === oi.name && ni.qty === oi.qty));
@@ -1381,7 +1516,6 @@ function saveEditedSale(){
 function showEditLog() {
     const list = document.getElementById('editLogList');
     const logs = (S.editLog || []).slice().reverse();
-    
     if (logs.length === 0) {
         list.innerHTML = '<div class="cart-empty"><div class="ce-i">📝</div><p>No hay ediciones registradas</p></div>';
     } else {
@@ -1402,11 +1536,29 @@ function showEditLog() {
    INIT
    ============================================ */
 document.addEventListener('DOMContentLoaded', () => {
-    initCalendar(); rDash(); initFirebase();
+    initCalendar(); 
+    rDash(); 
+    initFirebase();
+    
     ['gastoMont','cajaEditInput','bevPrice','cashRec','editBevPrice'].forEach(id=>{
         const el=document.getElementById(id);if(!el)return;
-        el.addEventListener('input',function(){const c=this.selectionStart,l=this.value.length,r=this.value.replace(/\D/g,'');this.value=formatMoneyInput(r);this.setSelectionRange(c+(this.value.length-l),c+(this.value.length-l));});
+        el.addEventListener('input',function(){
+            const c=this.selectionStart,l=this.value.length,r=this.value.replace(/\D/g,'');
+            this.value=formatMoneyInput(r);
+            this.setSelectionRange(c+(this.value.length-l),c+(this.value.length-l));
+        });
     });
+    
+    // Forzar sincronización cada 30 segundos
+    setInterval(() => {
+        if (isFirebaseReady && dbRef) {
+            dbRef.once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    applyRemoteData(snapshot.val());
+                }
+            });
+        }
+    }, 30000);
 });
 </script>
 </body>
