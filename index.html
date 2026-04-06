@@ -268,7 +268,6 @@
         #checkoutForm { display: none; }
         .hidden { display: none !important; }
 
-        /* Calendar */
         .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .cal-nav { background: none; border: 2px solid var(--gris-border); border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .cal-month { font-weight: 800; font-size: 0.95rem; }
@@ -281,7 +280,6 @@
         .cal-day.selected { background: var(--rojo); color: white; }
         .cal-day.empty { pointer-events: none; }
 
-        /* Edit sale item */
         .edit-item-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 8px; background: var(--fondo-alt); border-radius: 8px; }
         .edit-item-row .ei-icon { font-size: 1.2rem; }
         .edit-item-row .ei-info { flex: 1; }
@@ -290,8 +288,23 @@
         .edit-item-row .ei-qty { font-weight: 800; min-width: 20px; text-align: center; }
         .edit-item-row .ei-del { background: none; border: none; color: var(--rojo); cursor: pointer; font-size: 1rem; padding: 2px; }
 
-        /* Logo badge on drinks */
         .prod-btn .drink-logo { font-size: 1.8rem; margin-bottom: 2px; }
+
+        /* Pollo entry edit */
+        .pollos-entry { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; gap: 10px; }
+        .pollos-entry:last-child { border-bottom: none; }
+        .pollos-entry .pe-info { flex: 1; }
+        .pollos-entry .pe-qty { font-weight: 800; font-size: 1rem; color: var(--naranja); }
+        .pollos-entry .pe-time { font-size: 0.65rem; color: var(--gris-mid); }
+        .pollos-entry .pe-edit { background: none; border: 1px solid var(--gris-border); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+
+        /* Edit log */
+        .edit-log-item { padding: 10px; background: var(--fondo-alt); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--azul); }
+        .edit-log-item .eli-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .edit-log-item .eli-sale { font-weight: 700; font-size: 0.8rem; }
+        .edit-log-item .eli-time { font-size: 0.65rem; color: var(--gris-mid); }
+        .edit-log-item .eli-change { font-size: 0.75rem; color: var(--gris-mid); }
+        .edit-log-item .eli-change b { color: var(--rojo); }
 
         @media (max-width: 350px) { .prod-grid { grid-template-columns: repeat(2, 1fr); } .prod-btn { min-height: 75px; } .prod-btn .pi { font-size: 1.2rem; } }
         @media (min-width: 500px) { .prod-grid { grid-template-columns: repeat(4, 1fr); } }
@@ -331,7 +344,7 @@
         </div>
         <div class="card" style="padding:12px;">
             <div style="display:flex;gap:8px;align-items:flex-end;">
-                <div class="fg" style="margin-bottom:0;"><label>Cantidad de pollos a agregar</label><input type="number" id="dashPollosInput" placeholder="Ej: 18" min="1"></div>
+                <div class="fg" style="margin-bottom:0;"><label>Cantidad de pollos a agregar</label><input type="number" id="dashPollosInput" placeholder="Ej: 18 o 0.5" min="0.25" step="0.25"></div>
                 <button class="btn btn-red btn-sm" onclick="addPollosPrep()" style="flex-shrink:0;">➕</button>
             </div>
         </div>
@@ -339,6 +352,10 @@
         <div class="card">
             <div class="card-header"><div class="card-title">📋 Últimas Ventas</div><button class="btn btn-sm btn-outline" onclick="showAllSales()">📄 Ver Todas</button></div>
             <div id="dashSales"></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><div class="card-title">📝 Registro de Ediciones</div><button class="btn btn-sm btn-outline" onclick="showEditLog()">📋 Ver Historial</button></div>
+            <div id="dashEditLog" style="max-height:200px;overflow-y:auto;"></div>
         </div>
         <div class="q-grid">
             <div class="q-btn red" onclick="goPage('pos')"><span class="qi">🛒</span>Nueva Venta</div>
@@ -464,12 +481,12 @@
                 <div class="fg"><label>Logo</label>
                     <select id="bevLogo">
                         <option value="🥤"> Gaseosa</option>
-                        <option value="🍺"> Cerveza</option>
+                        <option value="🍺">🍺 Cerveza</option>
                         <option value="💧">💧 Agua</option>
-                        <option value="🧃">🧃 Jugo</option>
-                        <option value="🥛"> Lácteo</option>
+                        <option value="🧃"> Jugo</option>
+                        <option value="🥛">🥛 Lácteo</option>
                         <option value="☕">☕ Café</option>
-                        <option value="🍹">🍹 Cóctel</option>
+                        <option value="🍹"> Cóctel</option>
                     </select>
                 </div>
             </div>
@@ -510,11 +527,31 @@
 
 <div class="modal-bg" id="modAllSales"><div class="modal" style="max-width: 600px;"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">📋 Todas las Facturas del Día</div><div id="allSalesList" style="max-height: 400px; overflow-y: auto;"></div><div class="btn-group" style="margin-top: 14px;"><button class="btn btn-red btn-block" onclick="closeMod('modAllSales')">Cerrar</button></div></div></div></div>
 
-<div class="modal-bg" id="modEditSale"><div class="modal" style="max-width: 500px;"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">✏️ Editar Factura</div><div id="editSaleForm"></div><div class="btn-group" style="margin-top: 14px;"><button class="btn btn-outline" onclick="closeMod('modEditSale')">Cancelar</button><button class="btn btn-green" onclick="saveEditedSale()">💾 Guardar Cambios</button></div></div></div></div>
+<div class="modal-bg" id="modEditSale"><div class="modal" style="max-width: 500px;"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">✏️ Editar Factura</div><div id="editSaleForm"></div><div style="margin-top:14px;padding:12px;background:var(--fondo-alt);border-radius:8px;">
+    <div style="font-weight:700;margin-bottom:8px;font-size:0.85rem;">➕ Agregar producto:</div>
+    <div class="form-row">
+        <div class="fg" style="margin-bottom:0;">
+            <select id="addProductSelect">
+                <option value="">Seleccionar...</option>
+            </select>
+        </div>
+        <div class="fg" style="margin-bottom:0;max-width:80px;">
+            <input type="number" id="addProductQty" value="1" min="1" max="50" placeholder="Cant.">
+        </div>
+        <button class="btn btn-green btn-sm" onclick="addProductToEdit()" style="flex-shrink:0;align-self:flex-end;">➕</button>
+    </div>
+</div>
+<div class="btn-group" style="margin-top: 14px;"><button class="btn btn-outline" onclick="closeMod('modEditSale')">Cancelar</button><button class="btn btn-green" onclick="saveEditedSale()">💾 Guardar Cambios</button></div></div></div></div>
 
 <div class="modal-bg" id="modEditBev"><div class="modal"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">✏️ Editar Bebida</div><div id="editBevForm"></div><div class="btn-group" style="margin-top: 14px;"><button class="btn btn-outline" onclick="closeMod('modEditBev')">Cancelar</button><button class="btn btn-green" onclick="saveEditBev()">💾 Guardar</button></div></div></div></div>
 
 <div class="modal-bg" id="modResetConfirm"><div class="modal"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">🔄 Resetear Día</div><p style="text-align:center;color:var(--gris-mid);margin-bottom:14px;">¿Estás seguro? Se archivarán todos los datos de hoy y se iniciará un nuevo día limpio.</p><div id="resetPreview"></div><div class="btn-group"><button class="btn btn-outline" onclick="closeMod('modResetConfirm')">Cancelar</button><button class="btn btn-red" onclick="executeReset()">🔄 Confirmar Reset</button></div></div></div></div>
+
+<div class="modal-bg" id="modEditLog"><div class="modal" style="max-width:500px;"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">📝 Registro de Ediciones</div><div id="editLogList" style="max-height:400px;overflow-y:auto;"></div><div class="btn-group" style="margin-top:14px;"><button class="btn btn-red btn-block" onclick="closeMod('modEditLog')">Cerrar</button></div></div></div></div>
+
+<div class="modal-bg" id="modPolloEdit"><div class="modal"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">✏️ Editar Cantidad de Pollos</div><p style="text-align:center;color:var(--gris-mid);margin-bottom:12px;">Ingresa la contraseña para editar</p><div class="pin-container"><input type="password" class="pin-input" maxlength="1" id="polloPin1" oninput="polloPinNext(1)" inputmode="numeric"><input type="password" class="pin-input" maxlength="1" id="polloPin2" oninput="polloPinNext(2)" inputmode="numeric"><input type="password" class="pin-input" maxlength="1" id="polloPin3" oninput="polloPinNext(3)" inputmode="numeric"><input type="password" class="pin-input" maxlength="1" id="polloPin4" oninput="polloPinNext(4)" inputmode="numeric"></div><p id="polloPinError" style="text-align:center;color:var(--rojo);font-size:0.75rem;font-weight:700;display:none;">❌ Contraseña incorrecta</p><div class="btn-group"><button class="btn btn-outline" onclick="closeMod('modPolloEdit')">Cancelar</button><button class="btn btn-green" onclick="verifyPolloPin()">🔓 Verificar</button></div></div></div></div>
+
+<div class="modal-bg" id="modPolloEditQty"><div class="modal"><div class="modal-h"></div><div class="modal-body"><div class="modal-title">✏️ Editar Cantidad</div><div class="fg"><label>Nueva cantidad</label><input type="number" id="polloEditQty" placeholder="Ej: 18 o 0.5" step="0.25" min="0.25"></div><div class="btn-group"><button class="btn btn-outline" onclick="closeMod('modPolloEditQty')">Cancelar</button><button class="btn btn-green" onclick="savePolloEdit()">💾 Guardar</button></div></div></div></div>
 
 <div class="toast-box" id="toastBox"></div>
 <div id="printArea"></div>
@@ -600,14 +637,15 @@ function pushLocalToFirebase() {
         cajaInicial: S.cajaInicial, pollosPrep: S.pollosPrep, pollosCounter: S.pollosCounter,
         sales: S.sales, gastos: S.gastos, beverages: S.beverages, saleCounter: S.saleCounter,
         bevCounter: S.bevCounter, pollosUso: S.pollosUso || [], usoCounter: S.usoCounter || 1,
-        sobrantes: S.sobrantes || 0, lastUpdate: firebase.database.ServerValue.TIMESTAMP
+        sobrantes: S.sobrantes || 0, editLog: S.editLog || [],
+        lastUpdate: firebase.database.ServerValue.TIMESTAMP
     }).catch(() => {});
 }
 
 /* ============================================
    ESTADO & PERSISTENCIA
    ============================================ */
-const APP_KEY = 'plazoletaPOS_v8';
+const APP_KEY = 'plazoletaPOS_v9';
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function defaultState() {
     return { date: todayStr(), cajaInicial: 0, pollosPrep: [], pollosCounter: 1, sales: [], gastos: [],
@@ -620,7 +658,7 @@ function defaultState() {
             {id:11,name:'Quatro 600ml',price:4000,stock:12,icon:'🥤'}
         ], saleCounter: 1, bevCounter: 12, cart: [], selPay: null, selStatus: 'pagado',
         selPendPay: null, selAllPay: null, pendingSaleId: null, pendingPersonName: null, detailSaleId: null,
-        pollosUso: [], usoCounter: 1, sobrantes: 0, dayReset: false, lastUpdate: 0 };
+        pollosUso: [], usoCounter: 1, sobrantes: 0, dayReset: false, editLog: [], lastUpdate: 0 };
 }
 function load() {
     try { const s = localStorage.getItem(APP_KEY); if(s) { const st=JSON.parse(s); if(st.date!==todayStr()) { const pb=st.beverages||[]; const ns=defaultState(); ns.beverages=pb; ns.bevCounter=pb.length?Math.max(...pb.map(b=>b.id))+1:12; ns.sobrantes=st.sobrantes||0; toast('🌅 Nuevo día - Sobrantes: '+(st.sobrantes||0)+' pollos','info'); return ns; } return st; } } catch(e){}
@@ -716,6 +754,20 @@ function rDash() {
             <div class="sale-inf"><div class="si-n">${s.customerName}</div><div class="si-d">${s.id} • ${s.time} • ${s.items.map(i=>i.qty+'x '+i.name).join(', ')}</div></div>
             <div class="sale-amt">${cop(s.total)}</div>
         </div>`).join('');
+
+    // Edit log preview
+    const logDiv = document.getElementById('dashEditLog');
+    const recentLogs = (S.editLog || []).slice(-3).reverse();
+    if (recentLogs.length === 0) {
+        logDiv.innerHTML = '<div style="text-align:center;padding:12px;color:var(--gris-mid);font-size:0.8rem;">No hay ediciones registradas</div>';
+    } else {
+        logDiv.innerHTML = recentLogs.map(l => `
+            <div class="edit-log-item">
+                <div class="eli-header"><span class="eli-sale">${l.saleId}</span><span class="eli-time">${l.time}</span></div>
+                <div class="eli-change">${l.description}</div>
+            </div>
+        `).join('');
+    }
 }
 
 function addSobrantes() {
@@ -727,10 +779,67 @@ function addSobrantes() {
 }
 
 function addPollosPrep() {
-    const qty=parseInt(document.getElementById('dashPollosInput').value);
-    if(!qty||qty<=0){toast('❌ Ingresa cantidad válida','error');return;}
-    S.pollosPrep.push({id:S.pollosCounter++,qty,time:nowTime()});
-    document.getElementById('dashPollosInput').value=''; save(); rDash(); toast('✅ '+qty+' pollos registrados','success');
+    const qty = parseFloat(document.getElementById('dashPollosInput').value);
+    if (!qty || qty <= 0) { toast('❌ Ingresa cantidad válida','error'); return; }
+    S.pollosPrep.push({ id: S.pollosCounter++, qty: qty, time: nowTime() });
+    document.getElementById('dashPollosInput').value = ''; save(); rDash(); toast('✅ ' + qty + ' pollos registrados', 'success');
+}
+
+/* ============================================
+   POLLOS - EDITAR CON PIN
+   ============================================ */
+let editingPolloId = null;
+
+function openPolloEdit(id) {
+    editingPolloId = id;
+    ['polloPin1','polloPin2','polloPin3','polloPin4'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('polloPinError').style.display = 'none';
+    setTimeout(() => document.getElementById('polloPin1').focus(), 100);
+    openMod('modPolloEdit');
+}
+
+function polloPinNext(n) {
+    const cur = document.getElementById('polloPin' + n);
+    if (cur.value.length === 1 && n < 4) document.getElementById('polloPin' + (n + 1)).focus();
+}
+
+function verifyPolloPin() {
+    const pin = document.getElementById('polloPin1').value + document.getElementById('polloPin2').value + document.getElementById('polloPin3').value + document.getElementById('polloPin4').value;
+    if (pin === '1478') {
+        closeMod('modPolloEdit');
+        const p = S.pollosPrep.find(x => x.id === editingPolloId);
+        if (p) {
+            document.getElementById('polloEditQty').value = p.qty;
+            openMod('modPolloEditQty');
+        }
+    } else {
+        document.getElementById('polloPinError').style.display = 'block';
+        ['polloPin1','polloPin2','polloPin3','polloPin4'].forEach(i => document.getElementById(i).value = '');
+        document.getElementById('polloPin1').focus();
+        toast('❌ Contraseña incorrecta','error');
+    }
+}
+
+function savePolloEdit() {
+    const newQty = parseFloat(document.getElementById('polloEditQty').value);
+    if (isNaN(newQty) || newQty <= 0) { toast('❌ Cantidad inválida','error'); return; }
+    const p = S.pollosPrep.find(x => x.id === editingPolloId);
+    if (p) {
+        const oldQty = p.qty;
+        p.qty = newQty;
+        // Registrar en log
+        if (!S.editLog) S.editLog = [];
+        S.editLog.push({
+            id: Date.now(),
+            saleId: 'Lote #' + p.id,
+            time: nowTime(),
+            type: 'pollos_edit',
+            description: `Cantidad editada: <b>${oldQty}</b> → <b>${newQty}</b> pollos`,
+            details: { oldQty, newQty }
+        });
+        save(); rInv(); rDash(); closeMod('modPolloEditQty');
+        toast('✅ Cantidad actualizada','success');
+    }
 }
 
 /* ============================================
@@ -974,7 +1083,7 @@ function rInv(){
     document.getElementById('invRemainCount').textContent=getRemainingChickens();
     const ph=document.getElementById('pollosHistory');
     if(S.pollosPrep.length===0)ph.innerHTML='<div style="text-align:center;padding:12px;color:var(--gris-mid);font-size:0.8rem;">Sin registros</div>';
-    else ph.innerHTML=[...S.pollosPrep].reverse().map(p=>`<div class="gasto-row"><div class="gasto-icon">🔥</div><div class="gasto-info"><div class="gi-d">${p.qty} pollo${p.qty>1?'s':''} preparado${p.qty>1?'s':''}</div><div class="gi-m">${p.time}</div></div><div class="gasto-amt" style="color:var(--naranja);">+${p.qty}</div></div>`).join('');
+    else ph.innerHTML=[...S.pollosPrep].reverse().map(p=>`<div class="pollos-entry"><div class="pe-info"><div class="pe-qty">+${p.qty} 🍗</div><div class="pe-time">${p.time}</div></div><button class="pe-edit" onclick="openPolloEdit(${p.id})">✏️</button></div>`).join('');
     
     renderCalendar();
     
@@ -1119,15 +1228,15 @@ function resetDay() {
 function executeReset() {
     const resetData = S.resetData; if (!resetData) return;
     const archiveKey = 'pos_' + S.date;
-    try { localStorage.setItem(archiveKey, JSON.stringify({ date: S.date, sales: resetData.sales, gastos: resetData.gastos, pollosPrep: resetData.pollosPrep, cajaInicial: S.cajaInicial, sobrantes: resetData.sobrantes, pollosUso: S.pollosUso || [], archivedAt: Date.now() })); } catch(e) {}
+    try { localStorage.setItem(archiveKey, JSON.stringify({ date: S.date, sales: resetData.sales, gastos: resetData.gastos, pollosPrep: resetData.pollosPrep, cajaInicial: S.cajaInicial, sobrantes: resetData.sobrantes, pollosUso: S.pollosUso || [], editLog: S.editLog || [], archivedAt: Date.now() })); } catch(e) {}
     S.date = todayStr(); S.sales = []; S.gastos = []; S.pollosPrep = []; S.pollosCounter = 1; S.saleCounter = 1;
-    S.sobrantes = resetData.sobrantes || 0; S.dayReset = true; S.pollosUso = []; S.usoCounter = 1; S.resetData = null; S.cart = [];
+    S.sobrantes = resetData.sobrantes || 0; S.dayReset = true; S.pollosUso = []; S.usoCounter = 1; S.resetData = null; S.cart = []; S.editLog = [];
     document.getElementById('resetSobrantes').value = ''; document.getElementById('dashPollosInput').value = '';
     closeMod('modResetConfirm'); save(); goPage('dash'); toast('🔄 Día reseteado correctamente','success');
 }
 
 /* ============================================
-   VER TODAS / EDITAR / ELIMINAR FACTURAS
+   VER TODAS / EDITAR FACTURAS CON AGREGAR PRODUCTOS
    ============================================ */
 function showAllSales(){
     const list=document.getElementById('allSalesList'),all=[...S.sales].reverse();
@@ -1139,37 +1248,153 @@ function showAllSales(){
 let editingSaleId=null;
 function editSale(id){
     const sale=S.sales.find(s=>s.id===id);if(!sale)return;editingSaleId=id;
+    
+    // Llenar selector de productos
+    const select = document.getElementById('addProductSelect');
+    let opts = '<option value="">Seleccionar...</option>';
+    CHICKEN.forEach(c => { opts += `<option value="chicken_${c.id}">${c.icon} ${c.name} - ${cop(c.price)}</option>`; });
+    S.beverages.filter(b => b.stock > 0).forEach(b => { opts += `<option value="bev_${b.id}">${b.icon} ${b.name} - ${cop(b.price)}</option>`; });
+    select.innerHTML = opts;
+    
     document.getElementById('editSaleForm').innerHTML=`
         <div class="fg"><label>ID</label><input type="text" value="${sale.id}" disabled style="background:var(--fondo-alt);"></div>
         <div class="fg"><label>Cliente</label><input type="text" id="editCustomer" value="${sale.customerName}"></div>
         <div class="fg"><label>Estado</label><div class="pay-opts"><div class="pay-opt ${sale.status==='pagado'?'sel':''}" onclick="selEditStatus('pagado')" id="esPg"><div class="po-i">✅</div><div class="po-t">Pagado</div></div><div class="pay-opt ${sale.status==='pendiente'?'sel':''}" onclick="selEditStatus('pendiente')" id="esPn"><div class="po-i">⏳</div><div class="po-t">Pendiente</div></div></div></div>
         <div class="fg" id="epmSec" style="${sale.status==='pendiente'?'opacity:0.4;':''}"><label>Método Pago</label><div class="pay-opts"><div class="pay-opt ${sale.paymentMethod==='efectivo'?'sel':''}" onclick="selEditPay('efectivo')" id="epEf"><div class="po-i">💵</div><div class="po-t">Efectivo</div></div><div class="pay-opt ${sale.paymentMethod==='transferencia'?'sel':''}" onclick="selEditPay('transferencia')" id="epTr"><div class="po-i">📱</div><div class="po-t">Transferencia</div></div></div></div>
         <div class="fg"><label>Total</label><input type="text" id="editTotal" value="${formatMoneyInput(sale.total.toString())}" readonly style="background:var(--fondo-alt);"></div>
-        <div style="margin-top:14px;padding:12px;background:var(--fondo-alt);border-radius:8px;"><div style="font-weight:700;margin-bottom:8px;font-size:0.85rem;">Productos:</div>${sale.items.map((it,i)=>`<div class="edit-item-row"><span class="ei-icon">${it.icon}</span><div class="ei-info"><div class="ei-name">${it.name}</div><div style="font-size:0.7rem;color:var(--gris-mid);">${cop(it.price)} c/u</div></div><div class="ei-controls"><button onclick="editItemQty(${i},-1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button><span class="ei-qty">${it.qty}</span><button onclick="editItemQty(${i},1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div><button class="ei-del" onclick="removeEditItem(${i})">✕</button></div>`).join('')}</div>`;
+        <div style="margin-top:14px;padding:12px;background:var(--fondo-alt);border-radius:8px;"><div style="font-weight:700;margin-bottom:8px;font-size:0.85rem;">Productos actuales:</div>${sale.items.map((it,i)=>`<div class="edit-item-row"><span class="ei-icon">${it.icon}</span><div class="ei-info"><div class="ei-name">${it.name}</div><div style="font-size:0.7rem;color:var(--gris-mid);">${cop(it.price)} c/u</div></div><div class="ei-controls"><button onclick="editItemQty(${i},-1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button><span class="ei-qty">${it.qty}</span><button onclick="editItemQty(${i},1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div><button class="ei-del" onclick="removeEditItem(${i})">✕</button></div>`).join('')}</div>`;
+    
     window.editStatus=sale.status;window.editPay=sale.paymentMethod;window.editItems=JSON.parse(JSON.stringify(sale.items));
     openMod('modEditSale');
 }
+
 function selEditStatus(st){window.editStatus=st;document.getElementById('esPg').classList.toggle('sel',st==='pagado');document.getElementById('esPn').classList.toggle('sel',st==='pendiente');document.getElementById('epmSec').style.opacity=st==='pendiente'?'0.4':'1';}
 function selEditPay(m){window.editPay=m;document.getElementById('epEf').classList.toggle('sel',m==='efectivo');document.getElementById('epTr').classList.toggle('sel',m==='transferencia');}
 
 function editItemQty(idx,d) {
     window.editItems[idx].qty += d;
     if (window.editItems[idx].qty <= 0) window.editItems.splice(idx, 1);
-    const total = window.editItems.reduce((s,i) => s + (i.price * i.qty), 0);
-    document.getElementById('editTotal').value = formatMoneyInput(total.toString());
-    editSale(editingSaleId);
+    updateEditTotal();
 }
 
 function removeEditItem(idx){
-    if(window.editItems.length>1){window.editItems.splice(idx,1);const total=window.editItems.reduce((s,i)=>s+(i.price*i.qty),0);document.getElementById('editTotal').value=formatMoneyInput(total.toString());editSale(editingSaleId);}else toast('❌ Mínimo 1 producto','error');
+    if(window.editItems.length>1){window.editItems.splice(idx,1);updateEditTotal();editSale(editingSaleId);}else toast('❌ Mínimo 1 producto','error');
 }
+
+function addProductToEdit() {
+    const sel = document.getElementById('addProductSelect').value;
+    const qty = parseInt(document.getElementById('addProductQty').value) || 1;
+    if (!sel) { toast('❌ Selecciona un producto','error'); return; }
+    
+    let product = null;
+    if (sel.startsWith('chicken_')) {
+        const cid = sel.replace('chicken_', '');
+        const c = CHICKEN.find(x => x.id === cid);
+        if (c) product = { name: c.name, price: c.price, icon: c.icon, qty: qty };
+    } else if (sel.startsWith('bev_')) {
+        const bid = parseInt(sel.replace('bev_', ''));
+        const b = S.beverages.find(x => x.id === bid);
+        if (b) {
+            if (b.stock < qty) { toast('⚠️ Stock insuficiente','warn'); return; }
+            product = { name: b.name, price: b.price, icon: b.icon, qty: qty };
+        }
+    }
+    
+    if (!product) { toast('❌ Producto no encontrado','error'); return; }
+    
+    window.editItems.push(product);
+    document.getElementById('addProductQty').value = '1';
+    document.getElementById('addProductSelect').value = '';
+    
+    // Registrar en log
+    if (!S.editLog) S.editLog = [];
+    S.editLog.push({
+        id: Date.now(),
+        saleId: editingSaleId,
+        time: nowTime(),
+        type: 'add_product',
+        description: `Producto agregado: <b>${product.qty}x ${product.name}</b> (${cop(product.price * product.qty)})`,
+        details: { product }
+    });
+    
+    updateEditTotal();
+    editSale(editingSaleId);
+    toast('✅ '+product.name+' agregado','success');
+}
+
+function updateEditTotal() {
+    const total = window.editItems.reduce((s,i) => s + (i.price * i.qty), 0);
+    document.getElementById('editTotal').value = formatMoneyInput(total.toString());
+    // Re-render items
+    const container = document.querySelector('#editSaleForm .edit-item-row')?.parentElement;
+    if (container) {
+        container.innerHTML = window.editItems.map((it,i)=>`<div class="edit-item-row"><span class="ei-icon">${it.icon}</span><div class="ei-info"><div class="ei-name">${it.name}</div><div style="font-size:0.7rem;color:var(--gris-mid);">${cop(it.price)} c/u</div></div><div class="ei-controls"><button onclick="editItemQty(${i},-1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button><span class="ei-qty">${it.qty}</span><button onclick="editItemQty(${i},1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div><button class="ei-del" onclick="removeEditItem(${i})">✕</button></div>`).join('');
+    }
+}
+
 function saveEditedSale(){
     const sale=S.sales.find(s=>s.id===editingSaleId);if(!sale)return;
     const nc=document.getElementById('editCustomer').value.trim();if(!nc){toast('❌ Ingresa cliente','error');return;}
-    sale.customerName=nc;sale.status=window.editStatus;sale.paymentMethod=sale.status==='pendiente'?'pendiente':window.editPay;
-    sale.items=window.editItems;sale.total=window.editItems.reduce((s,i)=>s+(i.price*i.qty),0);
+    
+    const oldItems = JSON.parse(JSON.stringify(sale.items));
+    const oldTotal = sale.total;
+    const oldStatus = sale.status;
+    
+    sale.customerName=nc;
+    sale.status=window.editStatus;
+    sale.paymentMethod=sale.status==='pendiente'?'pendiente':window.editPay;
+    sale.items=window.editItems;
+    sale.total=window.editItems.reduce((s,i)=>s+(i.price*i.qty),0);
+    
     if(sale.status==='pagado'&&!sale.payTime)sale.payTime=nowTime();
+    
+    // Registrar cambios en log
+    if (!S.editLog) S.editLog = [];
+    let changes = [];
+    
+    if (oldStatus !== sale.status) changes.push(`Estado: ${oldStatus} → ${sale.status}`);
+    if (JSON.stringify(oldItems) !== JSON.stringify(sale.items)) {
+        const removed = oldItems.filter(oi => !sale.items.some(ni => ni.name === oi.name && ni.qty === oi.qty));
+        const added = sale.items.filter(ni => !oldItems.some(oi => oi.name === ni.name && oi.qty === ni.qty));
+        if (removed.length) changes.push(`Eliminados: ${removed.map(r=>r.qty+'x '+r.name).join(', ')}`);
+        if (added.length) changes.push(`Agregados: ${added.map(a=>a.qty+'x '+a.name).join(', ')}`);
+    }
+    if (oldTotal !== sale.total) changes.push(`Total: ${cop(oldTotal)} → ${cop(sale.total)}`);
+    if (changes.length > 0) {
+        S.editLog.push({
+            id: Date.now(),
+            saleId: editingSaleId,
+            time: nowTime(),
+            type: 'sale_edit',
+            description: changes.join(' | '),
+            details: { oldItems, newItems: sale.items, oldTotal, newTotal: sale.total }
+        });
+    }
+    
     save();closeMod('modEditSale');showAllSales();rDash();toast('✅ Factura actualizada','success');
+}
+
+/* ============================================
+   REGISTRO DE EDICIONES
+   ============================================ */
+function showEditLog() {
+    const list = document.getElementById('editLogList');
+    const logs = (S.editLog || []).slice().reverse();
+    
+    if (logs.length === 0) {
+        list.innerHTML = '<div class="cart-empty"><div class="ce-i">📝</div><p>No hay ediciones registradas</p></div>';
+    } else {
+        list.innerHTML = logs.map(l => `
+            <div class="edit-log-item" style="border-left-color: ${l.type === 'add_product' ? 'var(--verde)' : l.type === 'pollos_edit' ? 'var(--naranja)' : 'var(--azul)'};">
+                <div class="eli-header">
+                    <span class="eli-sale">${l.saleId} ${l.type === 'add_product' ? '📦' : l.type === 'pollos_edit' ? '🍗' : '✏️'}</span>
+                    <span class="eli-time">${l.time}</span>
+                </div>
+                <div class="eli-change">${l.description}</div>
+            </div>
+        `).join('');
+    }
+    openMod('modEditLog');
 }
 
 /* ============================================
