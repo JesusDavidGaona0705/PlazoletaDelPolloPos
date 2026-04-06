@@ -606,6 +606,7 @@ let isFirebaseReady = false;
 let db = null;
 let dbRef = null;
 let isApplyingRemote = false;
+let cajaInicialListener = null;
 
 function initFirebase() {
     if (typeof firebase !== 'undefined') {
@@ -642,6 +643,7 @@ function setupFirebase() {
                 txt.textContent = '✅ Sincronizado en tiempo real';
                 isFirebaseReady = true;
                 loadFromFirebase();
+                setupCajaListener();
             } else {
                 bar.classList.add('offline');
                 txt.textContent = '⚠️ Sin conexión';
@@ -667,6 +669,35 @@ function setupFirebase() {
         console.error('Firebase setup error:', e);
         setOfflineMode();
     }
+}
+
+function setupCajaListener() {
+    if (!dbRef) return;
+    
+    // Escuchar cambios específicos de cajaInicial
+    if (cajaInicialListener) {
+        cajaInicialListener.off();
+    }
+    
+    cajaInicialListener = dbRef.child('cajaInicial');
+    cajaInicialListener.on('value', snapshot => {
+        const val = snapshot.val();
+        if (val !== undefined && val !== S.cajaInicial) {
+            S.cajaInicial = val;
+            saveLocal();
+            
+            // Actualizar UI si estamos en página de caja
+            if (document.getElementById('pg-caja')?.classList.contains('active')) {
+                rCaja();
+            }
+            
+            // Actualizar input si existe y no está enfocado
+            const input = document.getElementById('cajaIniInput');
+            if (input && document.activeElement !== input) {
+                input.value = formatMoneyInput(val.toString());
+            }
+        }
+    });
 }
 
 function setOfflineMode() {
@@ -699,13 +730,30 @@ function applyRemoteData(data) {
     isApplyingRemote = true;
     
     try {
+        // SIEMPRE actualizar cajaInicial si es diferente
+        if ((S.cajaInicial || 0) !== (data.cajaInicial || 0)) {
+            S.cajaInicial = data.cajaInicial || 0;
+            // Si la página de caja está visible, actualizar UI inmediatamente
+            if (document.getElementById('pg-caja')?.classList.contains('active')) {
+                rCaja();
+            }
+            // También actualizar el input si existe en cualquier página
+            const cajaInput = document.getElementById('cajaIniInput');
+            if (cajaInput && document.activeElement !== cajaInput) {
+                cajaInput.value = formatMoneyInput(S.cajaInicial.toString());
+            }
+        }
+        
+        // Actualizar el resto de datos solo si hay cambios significativos
         const remoteSales = data.sales || [];
         const localSales = S.sales || [];
         
         if (remoteSales.length !== localSales.length || 
-            JSON.stringify(remoteSales) !== JSON.stringify(localSales)) {
+            JSON.stringify(remoteSales) !== JSON.stringify(localSales) ||
+            JSON.stringify(data.pollosPrep || []) !== JSON.stringify(S.pollosPrep || []) ||
+            JSON.stringify(data.gastos || []) !== JSON.stringify(S.gastos || []) ||
+            JSON.stringify(data.beverages || []) !== JSON.stringify(S.beverages || [])) {
             
-            S.cajaInicial = data.cajaInicial || 0;
             S.pollosPrep = data.pollosPrep || [];
             S.pollosCounter = data.pollosCounter || 1;
             S.sales = remoteSales;
@@ -768,7 +816,7 @@ function pushToFirebase() {
 /* ============================================
    ESTADO & PERSISTENCIA LOCAL
    ============================================ */
-const APP_KEY = 'plazoletaPOS_v10';
+const APP_KEY = 'plazoletaPOS_v11';
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function defaultState() {
     return { date: todayStr(), cajaInicial: 0, pollosPrep: [], pollosCounter: 1, sales: [], gastos: [],
@@ -1133,7 +1181,25 @@ function verifyPin(){
     if(pin==='1478'){closeMod('modPin');document.getElementById('cajaEditInput').value=S.cajaInicial>0?formatMoneyInput(S.cajaInicial.toString()):'';openMod('modCaja');}
     else{document.getElementById('pinError').style.display='block';['pin1','pin2','pin3','pin4'].forEach(id=>document.getElementById(id).value='');document.getElementById('pin1').focus();toast('❌ Contraseña incorrecta','error');}
 }
-function saveCajaInicial(){const v=getMoneyValue(document.getElementById('cajaEditInput'));if(v<0){toast('❌ Monto inválido','error');return;}S.cajaInicial=v;save();closeMod('modCaja');rCaja();toast('✅ Fondo de caja: '+cop(v),'success');}
+
+function saveCajaInicial(){
+    const v = getMoneyValue(document.getElementById('cajaEditInput'));
+    if (v < 0) { toast('❌ Monto inválido','error'); return; }
+    
+    // Actualizar inmediatamente en el dispositivo actual
+    S.cajaInicial = v;
+    save(); // Esto envía a Firebase
+    
+    // Actualizar UI local inmediatamente
+    if (document.getElementById('cajaIniInput')) {
+        document.getElementById('cajaIniInput').value = formatMoneyInput(v.toString());
+    }
+    rCaja(); // Refrescar pantalla de caja
+    
+    closeMod('modCaja');
+    toast('✅ Fondo de caja: '+cop(v),'success');
+}
+
 function addGasto(){
     const m=getMoneyValue(document.getElementById('gastoMont')),cat=document.getElementById('gastoCat').value,det=document.getElementById('gastoDet').value.trim();
     if(!m||m<=0){toast('❌ Ingresa monto válido','error');return;}if(!det){toast('❌ Ingresa especificación','error');return;}
