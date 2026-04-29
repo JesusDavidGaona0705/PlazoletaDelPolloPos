@@ -1558,3 +1558,317 @@ function openEditBev(id) {
                 <option value="🍺" ${b.icon==='🍺'?'selected':''}>🍺 Cerveza</option>
                 <option value="💧" ${b.icon==='💧'?'selected':''}>💧 Agua</option>
                 <option value="🧃" ${b.icon==='🧃'?'selected':''}>🧃 Jugoselected':''}>🧃 Jugo
+                            </option>
+                <option value="🥛" ${b.icon==='🥛'?'selected':''}>🥛 Lácteo</option>
+                <option value="☕" ${b.icon==='☕'?'selected':''}>☕ Café</option>
+                <option value="🍹" ${b.icon==='🍹'?'selected':''}>🍹 Cóctel</option>
+            </select>
+        </div>`;
+    S.editingBevId = id; openMod('modEditBev');
+}
+
+function saveEditBev() {
+    const b = S.beverages.find(x => x.id === S.editingBevId); if (!b) return;
+    const name = document.getElementById('editBevName').value.trim();
+    const price = getMoneyValue(document.getElementById('editBevPrice'));
+    const stock = parseInt(document.getElementById('editBevStock').value);
+    const logo = document.getElementById('editBevLogo').value;
+    if (!name) { toast('❌ Ingresa nombre','error'); return; }
+    if (!price || price <= 0) { toast('❌ Precio inválido','error'); return; }
+    if (isNaN(stock) || stock < 0) { toast('❌ Stock inválido','error'); return; }
+    b.name = name; b.price = price; b.stock = stock; b.icon = logo;
+    save(); closeMod('modEditBev'); rInv(); toast('✅ Bebida actualizada','success');
+}
+
+function addBev(){
+    const n=document.getElementById('bevName').value.trim(),p=getMoneyValue(document.getElementById('bevPrice')),s=parseInt(document.getElementById('bevStock').value),logo=document.getElementById('bevLogo').value;
+    if(!n){toast('❌ Ingresa nombre','error');return;}if(!p||p<=0){toast('❌ Precio inválido','error');return;}if(isNaN(s)||s<0){toast('❌ Stock inválido','error');return;}
+    S.beverages.push({id:S.bevCounter++,name:n,price:p,stock:s,icon:logo});
+    document.getElementById('bevName').value='';document.getElementById('bevPrice').value='';document.getElementById('bevStock').value='24';save();rInv();toast('✅ '+n+' agregada','success');
+}
+
+/* ============================================
+   CALENDARIO
+   ============================================ */
+let calYear, calMonth;
+function initCalendar() { const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); }
+function calNav(dir) { calMonth += dir; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function renderCalendar() {
+    initCalendar();
+    const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    document.getElementById('calMonth').textContent = monthNames[calMonth] + ' ' + calYear;
+    const grid = document.getElementById('calGrid');
+    let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = new Date();
+    for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === d;
+        let hasData = false;
+        try { if (localStorage.getItem('pos_' + dateStr)) hasData = true; } catch(e) {}
+        if (dateStr === todayStr() && (S.sales.length > 0 || S.pollosPrep.length > 0)) hasData = true;
+        const classes = ['cal-day'];
+        if (isToday) classes.push('today');
+        if (hasData) classes.push('has-data');
+        html += `<div class="${classes.join(' ')}" onclick="showDayData('${dateStr}')">${d}</div>`;
+    }
+    grid.innerHTML = html;
+}
+
+function showDayData(dateStr) {
+    const detail = document.getElementById('calDayDetail');
+    let dayData = null;
+    try { const saved = localStorage.getItem('pos_' + dateStr); if (saved) dayData = JSON.parse(saved); } catch(e) {}
+    if (dateStr === todayStr()) {
+        dayData = { pollosPrep: S.pollosPrep, sales: S.sales, gastos: S.gastos, cajaInicial: S.cajaInicial, sobrantes: S.sobrantes || 0 };
+    }
+    if (!dayData) { detail.style.display = 'block'; detail.innerHTML = `<div class="alert ok" style="margin-bottom:0;">✅ No hay datos registrados para el ${dateStr}</div>`; return; }
+    const pagadas = (dayData.sales || []).filter(s => s.status === 'pagado');
+    const pendientes = (dayData.sales || []).filter(s => s.status === 'pendiente');
+    const totV = pagadas.reduce((s,v) => s + v.total, 0);
+    const totP = pendientes.reduce((s,v) => s + v.total, 0);
+    const totG = (dayData.gastos || []).reduce((s,g) => s + g.monto, 0);
+    const totalPrep = (dayData.pollosPrep || []).reduce((s,p) => s + p.qty, 0);
+    detail.style.display = 'block';
+    detail.innerHTML = `
+        <div style="font-weight:800;margin-bottom:10px;font-size:0.9rem;">📅 ${dateStr}</div>
+        <div class="stats-grid" style="margin-bottom:10px;">
+            <div class="stat-card"><div class="stat-num">${cop(totV)}</div><div class="stat-label">Ventas cobradas</div></div>
+            <div class="stat-card yellow"><div class="stat-num">${cop(totP)}</div><div class="stat-label">Por cobrar</div></div>
+            <div class="stat-card orange"><div class="stat-num">${cop(totG)}</div><div class="stat-label">Gastos</div></div>
+            <div class="stat-card green"><div class="stat-num">${cop(totalPrep)}</div><div class="stat-label">Pollos prep.</div></div>
+        </div>
+        <div style="margin-bottom:8px;"><strong style="font-size:0.85rem;">🧾 Ventas del día (${(dayData.sales||[]).length}):</strong></div>
+        ${(dayData.sales||[]).slice().reverse().map(s => `<div class="sale-row" style="padding:8px 0;"><span class="sale-badge ${s.paymentMethod}">${s.paymentMethod==='efectivo'?'💵':s.paymentMethod==='transferencia'?'📱':''}</span><div class="sale-inf"><div class="si-n">${s.customerName}</div><div class="si-d">${s.id} • ${s.time} • ${s.items.map(i=>i.qty+'x '+i.name).join(', ')}</div></div><div class="sale-amt">${cop(s.total)}</div></div>`).join('')}`;
+}
+
+/* ============================================
+   RESET DEL DÍA
+   ============================================ */
+function resetDay() {
+    const sobrantes = parseFloat(document.getElementById('resetSobrantes').value) || 0;
+    const pagadas = S.sales.filter(s => s.status === 'pagado');
+    const totV = pagadas.reduce((s,v) => s + v.total, 0);
+    const totG = S.gastos.reduce((s,g) => s + g.monto, 0);
+    document.getElementById('resetPreview').innerHTML = `
+        <div style="background:var(--fondo-alt);padding:14px;border-radius:8px;margin-bottom:14px;font-size:0.85rem;">
+            <div><strong>Resumen del día:</strong></div>
+            <div style="margin-top:6px;">🧾 Ventas: ${S.sales.length} (${cop(totV)})</div>
+            <div>📝 Gastos: ${S.gastos.length} (${cop(totG)})</div>
+            <div>🔥 Pollos preparados: ${getTotalPrepared()}</div>
+            <div>🐔 Sobrantes para mañana: ${sobrantes}</div>
+            <div style="margin-top:8px;font-weight:800;">💰 Neto: ${cop(totV - totG)}</div>
+        </div>`;
+    S.resetData = { sobrantes, sales: [...S.sales], gastos: [...S.gastos], pollosPrep: [...S.pollosPrep] };
+    openMod('modResetConfirm');
+}
+
+function executeReset() {
+    const resetData = S.resetData; if (!resetData) return;
+    const archiveKey = 'pos_' + S.date;
+    try { localStorage.setItem(archiveKey, JSON.stringify({ date: S.date, sales: resetData.sales, gastos: resetData.gastos, pollosPrep: resetData.pollosPrep, cajaInicial: S.cajaInicial, sobrantes: resetData.sobrantes, pollosUso: S.pollosUso || [], editLog: S.editLog || [], archivedAt: Date.now() })); } catch(e) {}
+    S.date = todayStr(); S.sales = []; S.gastos = []; S.pollosPrep = []; S.pollosCounter = 1; S.saleCounter = 1;
+    S.sobrantes = resetData.sobrantes || 0; S.dayReset = true; S.pollosUso = []; S.usoCounter = 1; S.resetData = null; S.cart = []; S.editLog = [];
+    document.getElementById('resetSobrantes').value = ''; document.getElementById('dashPollosInput').value = '';
+    closeMod('modResetConfirm'); save(); goPage('dash'); toast('🔄 Día reseteado correctamente','success');
+}
+
+/* ============================================
+   VER TODAS / EDITAR FACTURAS
+   ============================================ */
+function showAllSales(){
+    const list=document.getElementById('allSalesList'),all=[...S.sales].reverse();
+    if(all.length===0){list.innerHTML='<div class="cart-empty"><div class="ce-i">📋</div><p>No hay facturas registradas</p></div>';}
+    else list.innerHTML=all.map(s=>`<div class="sale-row" style="padding:12px;border-bottom:1px solid #f0f0f0;"><span class="sale-badge ${s.paymentMethod}">${s.paymentMethod==='efectivo'?'💵':s.paymentMethod==='transferencia'?'📱':''}</span><div class="sale-inf"><div class="si-n">${s.id} - ${s.customerName}</div><div class="si-d">${s.time} • ${s.items.length} productos</div></div><div style="display:flex;gap:6px;align-items:center;"><span style="font-weight:800;color:var(--verde);">${cop(s.total)}</span><button class="btn btn-sm btn-yellow" onclick="editSale('${s.id}')" style="padding:4px 8px;">✏️</button></div></div>`).join('');
+    openMod('modAllSales');
+}
+
+let editingSaleId=null;
+function editSale(id){
+    const sale=S.sales.find(s=>s.id===id);if(!sale)return;editingSaleId=id;
+    
+    const select = document.getElementById('addProductSelect');
+    let opts = '<option value="">Seleccionar...</option>';
+    CHICKEN.forEach(c => { opts += `<option value="chicken_${c.id}">${c.icon} ${c.name} - ${cop(c.price)}</option>`; });
+    S.beverages.filter(b => b.stock > 0).forEach(b => { opts += `<option value="bev_${b.id}">${b.icon} ${b.name} - ${cop(b.price)}</option>`; });
+    select.innerHTML = opts;
+    
+    document.getElementById('editSaleForm').innerHTML=`
+        <div class="fg"><label>ID</label><input type="text" value="${sale.id}" disabled style="background:var(--fondo-alt);"></div>
+        <div class="fg"><label>Cliente</label><input type="text" id="editCustomer" value="${sale.customerName}"></div>
+        <div class="fg"><label>Estado</label><div class="pay-opts"><div class="pay-opt ${sale.status==='pagado'?'sel':''}" onclick="selEditStatus('pagado')" id="esPg"><div class="po-i">✅</div><div class="po-t">Pagado</div></div><div class="pay-opt ${sale.status==='pendiente'?'sel':''}" onclick="selEditStatus('pendiente')" id="esPn"><div class="po-i">⏳</div><div class="po-t">Pendiente</div></div></div></div>
+        <div class="fg" id="epmSec" style="${sale.status==='pendiente'?'opacity:0.4;':''}"><label>Método Pago</label><div class="pay-opts"><div class="pay-opt ${sale.paymentMethod==='efectivo'?'sel':''}" onclick="selEditPay('efectivo')" id="epEf"><div class="po-i">💵</div><div class="po-t">Efectivo</div></div><div class="pay-opt ${sale.paymentMethod==='transferencia'?'sel':''}" onclick="selEditPay('transferencia')" id="epTr"><div class="po-i">📱</div><div class="po-t">Transferencia</div></div></div></div>
+        <div class="fg"><label>Total</label><input type="text" id="editTotal" value="${formatMoneyInput(sale.total.toString())}" readonly style="background:var(--fondo-alt);"></div>
+        <div style="margin-top:14px;padding:12px;background:var(--fondo-alt);border-radius:8px;"><div style="font-weight:700;margin-bottom:8px;font-size:0.85rem;">Productos actuales:</div>${sale.items.map((it,i)=>`<div class="edit-item-row"><span class="ei-icon">${it.icon}</span><div class="ei-info"><div class="ei-name">${it.name}</div><div style="font-size:0.7rem;color:var(--gris-mid);">${cop(it.price)} c/u</div></div><div class="ei-controls"><button onclick="editItemQty(${i},-1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button><span class="ei-qty">${it.qty}</span><button onclick="editItemQty(${i},1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div><button class="ei-del" onclick="removeEditItem(${i})">✕</button></div>`).join('')}</div>`;
+    
+    window.editStatus=sale.status;window.editPay=sale.paymentMethod;window.editItems=JSON.parse(JSON.stringify(sale.items));
+    openMod('modEditSale');
+}
+function selEditStatus(st){window.editStatus=st;document.getElementById('esPg').classList.toggle('sel',st==='pagado');document.getElementById('esPn').classList.toggle('sel',st==='pendiente');document.getElementById('epmSec').style.opacity=st==='pendiente'?'0.4':'1';}
+function selEditPay(m){window.editPay=m;document.getElementById('epEf').classList.toggle('sel',m==='efectivo');document.getElementById('epTr').classList.toggle('sel',m==='transferencia');}
+
+function editItemQty(idx,d) {
+    window.editItems[idx].qty += d;
+    if (window.editItems[idx].qty <= 0) window.editItems.splice(idx, 1);
+    updateEditTotal();
+}
+
+function removeEditItem(idx){
+    if(window.editItems.length>1){window.editItems.splice(idx,1);updateEditTotal();editSale(editingSaleId);}else toast('❌ Mínimo 1 producto','error');
+}
+
+function addProductToEdit() {
+    const sel = document.getElementById('addProductSelect').value;
+    const qty = parseInt(document.getElementById('addProductQty').value) || 1;
+    if (!sel) { toast('❌ Selecciona un producto','error'); return; }
+    
+    let product = null;
+    if (sel.startsWith('chicken_')) {
+        const cid = sel.replace('chicken_', '');
+        const c = CHICKEN.find(x => x.id === cid);
+        if (c) product = { name: c.name, price: c.price, icon: c.icon, qty: qty };
+    } else if (sel.startsWith('bev_')) {
+        const bid = parseInt(sel.replace('bev_', ''));
+        const b = S.beverages.find(x => x.id === bid);
+        if (b) {
+            if (b.stock < qty) { toast('⚠️ Stock insuficiente','warn'); return; }
+            product = { name: b.name, price: b.price, icon: b.icon, qty: qty };
+        }
+    }
+    
+    if (!product) { toast('❌ Producto no encontrado','error'); return; }
+    
+    window.editItems.push(product);
+    document.getElementById('addProductQty').value = '1';
+    document.getElementById('addProductSelect').value = '';
+    
+    if (!S.editLog) S.editLog = [];
+    S.editLog.push({
+        id: Date.now(),
+        saleId: editingSaleId,
+        time: nowTime(),
+        type: 'add_product',
+        description: `Producto agregado: <b>${product.qty}x ${product.name}</b> (${cop(product.price * product.qty)})`,
+        details: { product }
+    });
+    
+    updateEditTotal();
+    editSale(editingSaleId);
+    toast('✅ '+product.name+' agregado','success');
+}
+
+function updateEditTotal() {
+    const total = window.editItems.reduce((s,i) => s + (i.price * i.qty), 0);
+    document.getElementById('editTotal').value = formatMoneyInput(total.toString());
+    const container = document.querySelector('#editSaleForm .edit-item-row')?.parentElement;
+    if (container) {
+        container.innerHTML = window.editItems.map((it,i)=>`<div class="edit-item-row"><span class="ei-icon">${it.icon}</span><div class="ei-info"><div class="ei-name">${it.name}</div><div style="font-size:0.7rem;color:var(--gris-mid);">${cop(it.price)} c/u</div></div><div class="ei-controls"><button onclick="editItemQty(${i},-1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button><span class="ei-qty">${it.qty}</span><button onclick="editItemQty(${i},1)" style="width:24px;height:24px;border-radius:50%;border:2px solid var(--gris-border);background:white;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button></div><button class="ei-del" onclick="removeEditItem(${i})">✕</button></div>`).join('');
+    }
+}
+
+function saveEditedSale(){
+    const sale=S.sales.find(s=>s.id===editingSaleId); if(!sale) return;
+    const nc=document.getElementById('editCustomer').value.trim(); if(!nc){toast('❌ Ingresa cliente','error');return;}
+
+    const oldItems = JSON.parse(JSON.stringify(sale.items));
+    const oldTotal = sale.total;
+    const oldStatus = sale.status;
+
+    // RECONCILIAR STOCK
+    reconcileStockOnEdit(oldItems, window.editItems);
+
+    sale.customerName=nc;
+    sale.status=window.editStatus;
+    sale.paymentMethod=sale.status==='pendiente'?'pendiente':window.editPay;
+    sale.items=window.editItems;
+    sale.total=window.editItems.reduce((s,i)=>s+(i.price*i.qty),0);
+    if(sale.status==='pagado'&&!sale.payTime)sale.payTime=nowTime();
+
+    if (!S.editLog) S.editLog = [];
+    let changes = [];
+    if (oldStatus !== sale.status) changes.push(`Estado: ${oldStatus} → ${sale.status}`);
+    if (JSON.stringify(oldItems) !== JSON.stringify(sale.items)) {
+        const removed = oldItems.filter(oi => !sale.items.some(ni => ni.name === oi.name && ni.qty === oi.qty));
+        const added = sale.items.filter(ni => !oldItems.some(oi => oi.name === ni.name && oi.qty === ni.qty));
+        if (removed.length) changes.push(`Eliminados: ${removed.map(r=>r.qty+'x '+r.name).join(', ')}`);
+        if (added.length) changes.push(`Agregados: ${added.map(a=>a.qty+'x '+a.name).join(', ')}`);
+    }
+    if (oldTotal !== sale.total) changes.push(`Total: ${cop(oldTotal)} → ${cop(sale.total)}`);
+    if (changes.length > 0) {
+        S.editLog.push({
+            id: Date.now(),
+            saleId: editingSaleId,
+            time: nowTime(),
+            type: 'sale_edit',
+            description: changes.join(' | '),
+            details: { oldItems, newItems: sale.items, oldTotal, newTotal: sale.total }
+        });
+    }
+
+    save();
+    closeMod('modEditSale');
+    
+    // FORZAR ACTUALIZACIÓN GLOBAL
+    showAllSales();
+    rDash();
+    rCaja();
+    rPend();
+    rInv();
+    rPOS();
+    
+    toast('✅ Factura actualizada y stock reconciliado','success');
+}
+
+/* ============================================
+   REGISTRO DE EDICIONES
+   ============================================ */
+function showEditLog() {
+    const list = document.getElementById('editLogList');
+    const logs = (S.editLog || []).slice().reverse();
+    if (logs.length === 0) {
+        list.innerHTML = '<div class="cart-empty"><div class="ce-i">📝</div><p>No hay ediciones registradas</p></div>';
+    } else {
+        list.innerHTML = logs.map(l => `
+            <div class="edit-log-item" style="border-left-color: ${l.type === 'add_product' ? 'var(--verde)' : l.type === 'pollos_edit' ? 'var(--naranja)' : 'var(--azul)'};">
+                <div class="eli-header">
+                    <span class="eli-sale">${l.saleId} ${l.type === 'add_product' ? '📦' : l.type === 'pollos_edit' ? '🍗' : '✏️'}</span>
+                    <span class="eli-time">${l.time}</span>
+                </div>
+                <div class="eli-change">${l.description}</div>
+            </div>
+        `).join('');
+    }
+    openMod('modEditLog');
+}
+
+/* ============================================
+   INIT
+   ============================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    initCalendar(); 
+    rDash(); 
+    initFirebase();
+    
+    ['gastoMont','cajaEditInput','bevPrice','cashRec','editBevPrice'].forEach(id=>{
+        const el=document.getElementById(id);if(!el)return;
+        el.addEventListener('input',function(){
+            const c=this.selectionStart,l=this.value.length,r=this.value.replace(/\D/g,'');
+            this.value=formatMoneyInput(r);
+            this.setSelectionRange(c+(this.value.length-l),c+(this.value.length-l));
+        });
+    });
+    
+    setInterval(() => {
+        if (isFirebaseReady && dbRef) {
+            dbRef.once('value').then(snapshot => {
+                if (snapshot.exists()) applyRemoteData(snapshot.val());
+            });
+        }
+    }, 30000);
+});
+</script>
+</body>
+</html>
