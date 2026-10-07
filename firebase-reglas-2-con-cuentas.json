@@ -1,0 +1,85 @@
+{
+  "rules": {
+    "pos": {
+      "$store": {
+        "accounts": {
+          ".read": "auth != null",
+          ".write": "auth != null && (root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin' || (!root.child('pos').child($store).child('staff').exists() && newData.val() === true))",
+          ".validate": "newData.val() === true"
+        },
+        "staff": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'",
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && (root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin' || (auth.uid === $uid && newData.child('r').val() === 'admin' && !root.child('pos').child($store).child('staff').exists()))",
+            ".validate": "newData.child('r').val() === 'admin' || newData.child('r').val() === 'employee'"
+          }
+        },
+        "sales": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "pendingSales": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "clients": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "stock": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "cnt": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "activityLog": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "presence": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "products": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "expenses": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "usageHistory": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "mermas": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "stockHistory": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "arqueos": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "cfg": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "meta": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "archives": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        }
+      }
+    }
+  }
+}

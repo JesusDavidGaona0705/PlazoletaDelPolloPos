@@ -1,0 +1,54 @@
+LA PLAZOLETA DEL POLLO - POS  (versión 2.0.0)
+=============================================
+
+CONTENIDO DE ESTA CARPETA
+  index.html ............ la aplicación (todo el programa está aquí)
+  sw.js, manifest.webmanifest, icon-*.png ... permiten instalarla como app y abrirla sin internet
+  vendor/ ............... iconos, tipografía y librería de Firebase (copias locales)
+  firebase-reglas-*.json  reglas de seguridad para pegar en Firebase
+
+IMPORTANTE: sube la CARPETA COMPLETA a tu hosting. Si subes solo index.html también
+funciona, pero necesitará internet para cargar iconos y Firebase, y no se podrá instalar
+como app ni abrir sin conexión.
+
+--------------------------------------------------------------------------------
+PASO 1 - PUBLICAR LA PÁGINA (necesario para usarla en varios dispositivos)
+  Opción A (Firebase Hosting, ya tienes el proyecto "polloasadopos"):
+     npm install -g firebase-tools
+     firebase login
+     firebase init hosting     (carpeta pública: esta carpeta; "single-page app": No)
+     firebase deploy
+  Opción B: arrastrar la carpeta a https://app.netlify.com/drop
+  Abierta como archivo (file://) la sincronización y las cuentas pueden fallar.
+
+PASO 2 - REGLAS DE LA BASE DE DATOS (Firebase -> Realtime Database -> Reglas)
+  Ahora:     pega firebase-reglas-1-actual.json     y pulsa "Publicar".
+  En Authentication -> Método de acceso, activa "Anónimo".
+  (Si tu base está en "modo de prueba", esas reglas vencen a los 30 días y la
+   sincronización dejaría de funcionar de golpe.)
+
+PASO 3 (RECOMENDADO) - PROTEGER CON CUENTAS
+  1. En Firebase -> Authentication -> Método de acceso, activa "Correo electrónico/contraseña".
+  2. En la app (como administrador) pulsa el botón de nube -> "Cuentas del negocio"
+     -> escribe tu correo y una contraseña -> "Crear cuenta y proteger".
+  3. INMEDIATAMENTE pega en Firebase las reglas de firebase-reglas-2-con-cuentas.json y publica.
+     (Entre el paso 2 y el 3 cualquiera con el enlace podría crear la cuenta de administrador;
+      hazlos seguidos.)
+  4. Agrega a tus empleados desde la misma ventana ("Agregar persona"). Cada uno entra
+     con su correo y contraseña. Los empleados solo pueden vender y cobrar.
+  5. Los dispositivos que sigan con sesión anónima quedan bloqueados hasta que inicien sesión
+     con su cuenta (es lo esperado). Cuando todos hayan entrado, puedes desactivar "Anónimo"
+     en Authentication. En un dispositivo nuevo, pulsa "Entrar con una cuenta".
+     Los correos del equipo solo los puede leer el administrador.
+  Prueba las reglas en Firebase -> Realtime Database -> Reglas -> "Simulador de reglas".
+
+CÓDIGO DEL NEGOCIO
+  Por defecto es "principal". Todos los dispositivos deben usar el mismo. Si lo cambias
+  (botón de nube), el dispositivo pasa a un espacio de datos nuevo y separado.
+
+INSTALAR COMO APP
+  Android (Chrome): menú ⋮ -> "Instalar app".   iPhone (Safari): Compartir -> "Agregar a inicio".
+
+CIERRE DEL DÍA
+  Guarda un archivo del día (también en la nube), conserva a quienes quedan debiendo y
+  limpia las mermas y el historial de inventario de más de 180 días (quedan en el archivo).

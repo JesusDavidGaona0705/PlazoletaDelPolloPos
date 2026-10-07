@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "pos": {
+      "$store": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
