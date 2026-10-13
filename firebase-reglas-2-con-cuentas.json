@@ -78,6 +78,10 @@
         "archives": {
           ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'",
           ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
+        },
+        "categories": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"
         }
       }
     }

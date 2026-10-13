@@ -2,11 +2,45 @@
    - Archivos propios y librerías: se guardan al primer uso.
    - Página principal: busca la versión nueva en la red y, si no hay internet, usa la guardada.
    - No toca las conexiones a Firebase (base de datos y cuentas). */
-const VERSION='pollo-pos-2.0.0';
-const PRECACHE=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png',
- 'vendor/fa/css/all.min.css','vendor/fa/webfonts/fa-solid-900.woff2','vendor/fa/webfonts/fa-regular-400.woff2',
- 'vendor/inter/inter.css','vendor/inter/inter-latin-400-normal.woff2','vendor/inter/inter-latin-500-normal.woff2','vendor/inter/inter-latin-600-normal.woff2','vendor/inter/inter-latin-700-normal.woff2',
- 'vendor/firebase/firebase-app-compat.js','vendor/firebase/firebase-database-compat.js','vendor/firebase/firebase-auth-compat.js'];
+const VERSION='pollo-pos-2.1.0';
+const PRECACHE = [
+  './',
+  'index.html',
+  'manifest.webmanifest',
+  'css/styles.css',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/favicon-64.png',
+  'icons/apple-touch-icon.png',
+  'js/storage.js',
+  'js/config.js',
+  'js/security.js',
+  'js/utils.js',
+  'js/pwa.js',
+  'js/cloud.js',
+  'js/app/core.js',
+  'js/app/categories.js',
+  'js/app/auth.js',
+  'js/app/products.js',
+  'js/app/sell.js',
+  'js/app/sales.js',
+  'js/app/chickens.js',
+  'js/app/cash.js',
+  'js/app/clients.js',
+  'js/app/reports.js',
+  'js/main.js',
+  'vendor/fa/css/all.min.css',
+  'vendor/fa/webfonts/fa-solid-900.woff2',
+  'vendor/fa/webfonts/fa-regular-400.woff2',
+  'vendor/inter/inter.css',
+  'vendor/inter/inter-latin-400-normal.woff2',
+  'vendor/inter/inter-latin-500-normal.woff2',
+  'vendor/inter/inter-latin-600-normal.woff2',
+  'vendor/inter/inter-latin-700-normal.woff2',
+  'vendor/firebase/firebase-app-compat.js',
+  'vendor/firebase/firebase-database-compat.js',
+  'vendor/firebase/firebase-auth-compat.js',
+];
 const CDN_HOSTS=['cdnjs.cloudflare.com','cdn.jsdelivr.net','www.gstatic.com'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>Promise.all(PRECACHE.map(u=>c.add(u).catch(()=>{})))))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('pollo-pos-')&&k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

@@ -1,9 +1,11 @@
-LA PLAZOLETA DEL POLLO - POS  (versión 2.0.0)
+LA PLAZOLETA DEL POLLO - POS  (versión 2.1.0)
 =============================================
 
 CONTENIDO DE ESTA CARPETA
-  index.html ............ la aplicación (todo el programa está aquí)
-  sw.js, manifest.webmanifest, icon-*.png ... permiten instalarla como app y abrirla sin internet
+  index.html ............ la estructura de la página
+  css/styles.css ........ los estilos
+  js/ y js/app/ ......... el código, dividido por tema (ventas, productos, pollos, caja, ...)
+  sw.js, manifest.webmanifest, icons/ ... permiten instalarla como app y abrirla sin internet
   vendor/ ............... iconos, tipografía y librería de Firebase (copias locales)
   firebase-reglas-*.json  reglas de seguridad para pegar en Firebase
 
@@ -52,3 +54,19 @@ INSTALAR COMO APP
 CIERRE DEL DÍA
   Guarda un archivo del día (también en la nube), conserva a quienes quedan debiendo y
   limpia las mermas y el historial de inventario de más de 180 días (quedan en el archivo).
+
+NOVEDADES 2.1.0
+  - Pollo por fracciones: cada producto de pollo guarda cuánto pollo gasta (1, 1/2, 1/4, 1/8).
+    Se elige al crear/editar el producto. Ya no depende del nombre.
+  - Pollo broaster: categoría nueva que descuenta de los pollos CRUDOS. Se crearon 4 productos
+    (entero, 1/2, 1/4, porción 1/8). LOS PRECIOS (42.000 / 22.000 / 12.000 / 6.500) SON DE EJEMPLO:
+    edítalos en Productos.
+  - Categorías: Productos -> "Categorías" para crear, renombrar o borrar. Tipos: pollo asado
+    (descuenta de asados), pollo broaster (de crudos) o producto normal (con stock en unidades).
+  - Eliminar facturas (solo administrador, pide contraseña): botón de papelera en Ventas y en
+    Pendientes. Puedes devolver el pollo/stock al inventario.
+  - Uso de sobrantes (pasteles, etc.): descuenta de los pollos asados o crudos a elección.
+  - Cantidades de pollo aceptan 1/2, 2 1/4, 0,5 y tienen botones +1/8 +1/4 +1/2 +1.
+  - Si ya tenías productos en la categoría "Otros", ahora SÍ aparecen en Vender.
+  - IMPORTANTE: si usas cuentas (paso 3), vuelve a pegar firebase-reglas-2-con-cuentas.json
+    en Firebase: incluye la nueva sección "categories".
