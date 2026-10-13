@@ -20,7 +20,15 @@ const Cloud = (() => {
   };
   const NODES = COLS.concat(["stock", "cfg", "cnt", "meta"]);
   /* Qué puede escribir cada rol (se usa para generar las reglas de Firebase) */
-  const EMP_NODES = ["sales", "pendingSales", "clients", "stock", "cnt", "activityLog", "presence"];
+  const EMP_NODES = [
+    "sales",
+    "pendingSales",
+    "clients",
+    "stock",
+    "cnt",
+    "activityLog",
+    "presence",
+  ];
   const ADM_NODES = [
     "products",
     "expenses",
@@ -101,7 +109,8 @@ const Cloud = (() => {
   const deviceId = (() => {
     let d = LS("pos_device_id");
     if (!d) {
-      d = "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      d =
+        "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       LSset("pos_device_id", d);
     }
     return d;
@@ -116,9 +125,15 @@ const Cloud = (() => {
       h1 = Math.imul(h1 ^ c, 2654435761);
       h2 = Math.imul(h2 ^ c, 1597334677);
     }
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36) + "." + s.length;
+    h1 =
+      Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^
+      Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 =
+      Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^
+      Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (
+      (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36) + "." + s.length
+    );
   }
   const key = (id) => String(id).replace(/[.#$\[\]\/\s]/g, "_");
   const getPath = (o, p) => p.reduce((a, k) => (a == null ? a : a[k]), o);
@@ -197,7 +212,9 @@ const Cloud = (() => {
       if (!Array.isArray(S[c])) S[c] = [];
     });
     S.activityLog.forEach((e) => {
-      if (!e.id) e.id = "L" + (e.time || Date.now()) + Math.random().toString(36).slice(2, 6);
+      if (!e.id)
+        e.id =
+          "L" + (e.time || Date.now()) + Math.random().toString(36).slice(2, 6);
     });
     S.products.forEach((p) => {
       if (p._o == null) {
@@ -234,7 +251,10 @@ const Cloud = (() => {
     const up = {},
       undo = [];
     const setSh = (p, v) => {
-      undo.push([p, Object.prototype.hasOwnProperty.call(shadow, p) ? shadow[p] : undefined]);
+      undo.push([
+        p,
+        Object.prototype.hasOwnProperty.call(shadow, p) ? shadow[p] : undefined,
+      ]);
       if (v === undefined) delete shadow[p];
       else shadow[p] = v;
     };
@@ -250,7 +270,10 @@ const Cloud = (() => {
     Object.keys(shadow).forEach((p) => {
       const top = p.split("/")[0];
       if (denied.has(top)) return;
-      if ((COLS.indexOf(top) >= 0 && !(p in ent)) || (top === "stock" && !(p in num))) {
+      if (
+        (COLS.indexOf(top) >= 0 && !(p in ent)) ||
+        (top === "stock" && !(p in num))
+      ) {
         up[p] = null;
         setSh(p, undefined);
       }
@@ -301,7 +324,11 @@ const Cloud = (() => {
     shT = setTimeout(writeShadow, 400);
   }
   const isDenied = (e) =>
-    !!(e && (e.code === "PERMISSION_DENIED" || /permission_denied/i.test(e.message || "")));
+    !!(
+      e &&
+      (e.code === "PERMISSION_DENIED" ||
+        /permission_denied/i.test(e.message || ""))
+    );
   function restoreTops(tops) {
     const only = new Set(tops);
     reconcile(true, only);
@@ -324,7 +351,9 @@ const Cloud = (() => {
           restoreTops([top]);
           if (!deniedNotified) {
             deniedNotified = true;
-            Toast.warning("Algunos cambios no se guardaron en la nube: tu cuenta no tiene permiso");
+            Toast.warning(
+              "Algunos cambios no se guardaron en la nube: tu cuenta no tiene permiso",
+            );
           }
         } else fail(e);
       }
@@ -343,13 +372,16 @@ const Cloud = (() => {
         lastSync = Date.now();
       })
       .catch((e) => {
-        if (isDenied(e) && Object.keys(up).length > 1) return splitSend(up, undo);
+        if (isDenied(e) && Object.keys(up).length > 1)
+          return splitSend(up, undo);
         revert(undo);
         if (isDenied(e)) {
           const t = Object.keys(up)[0].split("/")[0];
           denied.add(t);
           restoreTops([t]);
-          Toast.warning("Algunos cambios no se guardaron en la nube: tu cuenta no tiene permiso");
+          Toast.warning(
+            "Algunos cambios no se guardaron en la nube: tu cuenta no tiene permiso",
+          );
         } else fail(e);
       })
       .then(() => {
@@ -384,7 +416,8 @@ const Cloud = (() => {
           } catch (e) {}
         }
         Object.keys(shadow).forEach((p) => {
-          if (p.indexOf(c + "/") === 0 && !(p.slice(c.length + 1) in rm)) delete shadow[p];
+          if (p.indexOf(c + "/") === 0 && !(p.slice(c.length + 1) in rm))
+            delete shadow[p];
         });
         S[c] = sortCol(c, out);
         changed = true;
@@ -505,7 +538,9 @@ const Cloud = (() => {
       if (newSales > 0 && !adopt)
         Toast.info(
           "🔔 " +
-            (newSales === 1 ? "Nueva venta registrada" : newSales + " ventas nuevas") +
+            (newSales === 1
+              ? "Nueva venta registrada"
+              : newSales + " ventas nuevas") +
             " desde otro dispositivo",
         );
     }
@@ -597,7 +632,9 @@ const Cloud = (() => {
         if (od && od.catch) od.catch(() => {});
       } catch (x) {}
       p.set({
-        k: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Celular" : "Computador",
+        k: /Mobi|Android|iPhone/i.test(navigator.userAgent)
+          ? "Celular"
+          : "Computador",
         t: firebase.database.ServerValue.TIMESTAMP,
       }).catch(() => {});
       if (notifiedOffline) {
@@ -613,7 +650,9 @@ const Cloud = (() => {
         setStatus("offline");
         if (!notifiedOffline) {
           notifiedOffline = true;
-          Toast.warning("Sin conexión: tus cambios se guardan y se enviarán al reconectar");
+          Toast.warning(
+            "Sin conexión: tus cambios se guardan y se enviarán al reconectar",
+          );
         }
       } else if (!paused && status !== "error")
         setStatus(Date.now() - t0 > 6000 ? "offline" : "connecting");
@@ -655,7 +694,9 @@ const Cloud = (() => {
   function withTimeout(p, ms, code) {
     return Promise.race([
       p,
-      new Promise((_, rj) => setTimeout(() => rj({ code: code || "timeout" }), ms)),
+      new Promise((_, rj) =>
+        setTimeout(() => rj({ code: code || "timeout" }), ms),
+      ),
     ]);
   }
   const accountsFlag = () => LS("pos_accounts") === "1";
@@ -752,7 +793,9 @@ const Cloud = (() => {
   function stopDb() {
     if (!dbStarted) return;
     try {
-      NODES.concat(["presence", "staff", "accounts"]).forEach((n) => ref.child(n).off());
+      NODES.concat(["presence", "staff", "accounts"]).forEach((n) =>
+        ref.child(n).off(),
+      );
       if (user) ref.child("staff/" + user.uid).off();
       db.ref(".info/connected").off();
     } catch (e) {}
@@ -775,7 +818,10 @@ const Cloud = (() => {
       }
       staffKnown = true;
       if (emailUser()) {
-        const m = await withTimeout(ref.child("staff/" + user.uid).once("value"), 7000);
+        const m = await withTimeout(
+          ref.child("staff/" + user.uid).once("value"),
+          7000,
+        );
         me = m.val();
       }
     } catch (e) {
@@ -801,11 +847,23 @@ const Cloud = (() => {
     const r = myRole();
     if (!r) {
       if (staffKnown) {
-        app.accountError(
-          "Tu cuenta no tiene acceso a este negocio. Pídele al administrador que te agregue.",
+        const uid = user.uid,
+          mail = user.email;
+        const done = () => {
+          app.accountError(
+            "Tu cuenta aún no tiene acceso a este negocio. Ya le enviamos una solicitud al administrador; vuelve a entrar cuando te apruebe.",
+          );
+          signOut();
+        };
+        ref
+          .child("requests/" + uid)
+          .set({ e: mail, t: Date.now() })
+          .then(done, done);
+      } else
+        setStatus(
+          "error",
+          "No se pudo verificar tu cuenta. Revisa tu conexión.",
         );
-        signOut();
-      } else setStatus("error", "No se pudo verificar tu cuenta. Revisa tu conexión.");
       return;
     }
     if (r) {
@@ -813,6 +871,14 @@ const Cloud = (() => {
       denied.clear();
       ensureDb();
       app.loginFromCloud(r, user.email);
+      if (r === "admin")
+        loadRequests().then(() => {
+          const n = Object.keys(requests).length;
+          if (n)
+            Toast.info(
+              n + " solicitud(es) de acceso pendientes (☁️ Sincronización)",
+            );
+        });
     }
   }
   function onUser(u) {
@@ -841,7 +907,9 @@ const Cloud = (() => {
       app.setAccountsMode(false);
       setStatus(
         "local",
-        "No se pudo cargar Firebase (" + e.message + "). La app sigue funcionando sin sincronizar.",
+        "No se pudo cargar Firebase (" +
+          e.message +
+          "). La app sigue funcionando sin sincronizar.",
       );
       return;
     }
@@ -888,8 +956,7 @@ const Cloud = (() => {
     "auth/invalid-email": "El correo no es válido.",
     "auth/too-many-requests": "Demasiados intentos. Espera unos minutos.",
     "auth/network-request-failed": "Sin conexión con el servicio de cuentas.",
-    "auth/email-already-in-use":
-      "Ese correo ya tiene cuenta. Usa otro o elimínalo en la consola de Firebase.",
+    "auth/email-already-in-use": "Ese correo ya tiene una cuenta.",
     "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
     "auth/operation-not-allowed":
       "Activa «Correo electrónico/contraseña» en Firebase → Authentication → Método de acceso.",
@@ -923,7 +990,13 @@ const Cloud = (() => {
       await auth.signInWithEmailAndPassword(e, p);
       if ($("accPass")) $("accPass").value = "";
     } catch (err) {
-      formErr(authMsg(err.code));
+      const bad = /invalid-credential|wrong-password|user-not-found/.test(
+        err.code || "",
+      );
+      formErr(
+        authMsg(err.code) +
+          (bad ? " Si la olvidaste, pulsa «¿Olvidaste tu contraseña?»." : ""),
+      );
     } finally {
       if (b) b.disabled = false;
     }
@@ -960,7 +1033,12 @@ const Cloud = (() => {
     if (accountsMode()) signOut();
   }
   async function checkPassword(p) {
-    if (accountsMode() && emailUser() && firebase.auth && firebase.auth.EmailAuthProvider) {
+    if (
+      accountsMode() &&
+      emailUser() &&
+      firebase.auth &&
+      firebase.auth.EmailAuthProvider
+    ) {
       try {
         await user.reauthenticateWithCredential(
           firebase.auth.EmailAuthProvider.credential(user.email, p),
@@ -972,6 +1050,76 @@ const Cloud = (() => {
     }
     return checkAdminPassword(p);
   }
+  let requests = {};
+  function loadRequests() {
+    if (!ref || !accountsMode()) return Promise.resolve();
+    return ref
+      .child("requests")
+      .once("value")
+      .then((sn) => {
+        requests = sn.val() || {};
+      })
+      .catch(() => {
+        requests = {};
+      });
+  }
+  async function approveRequest(uid) {
+    const q = requests[uid];
+    if (!q) return;
+    const sel = $("reqRole_" + uid);
+    const r = sel && sel.value === "admin" ? "admin" : "employee";
+    try {
+      await ref.child("staff/" + uid).set({ r: r, e: q.e });
+      await ref.child("requests/" + uid).remove();
+      Toast.success("Acceso aprobado: " + q.e);
+      await loadRequests();
+      renderModal();
+    } catch (err) {
+      Toast.error(authMsg(err.code || err.message));
+    }
+  }
+  async function rejectRequest(uid) {
+    try {
+      await ref.child("requests/" + uid).remove();
+      await loadRequests();
+      renderModal();
+    } catch (err) {
+      Toast.error(authMsg(err.code || err.message));
+    }
+  }
+  async function sendReset(email) {
+    if (!auth || !email) return;
+    try {
+      await auth.sendPasswordResetEmail(email);
+      Toast.success("Correo para cambiar la contraseña enviado a " + email);
+    } catch (err) {
+      Toast.error(authMsg(err.code || err.message));
+    }
+  }
+  function resetMine() {
+    if (user && user.email) sendReset(user.email);
+  }
+  function resetStaff(uid) {
+    const s = (staff || {})[uid];
+    if (s && s.e) sendReset(s.e);
+  }
+  /* Crea la cuenta; si el correo ya existía (cuenta quitada antes) intenta reactivarla con esa contraseña */
+  async function createOrReuse(authObj, e, p) {
+    try {
+      return (await authObj.createUserWithEmailAndPassword(e, p)).user;
+    } catch (err) {
+      if (err.code !== "auth/email-already-in-use") throw err;
+      try {
+        return (await authObj.signInWithEmailAndPassword(e, p)).user;
+      } catch (e2) {
+        const x = new Error("exists");
+        x.code = "pos/exists-other-password";
+        throw x;
+      }
+    }
+  }
+  const EXISTS_MSG =
+    "Ese correo ya tuvo una cuenta con otra contraseña. Pídele a la persona que entre con «Entrar con una cuenta» (puede usar «¿Olvidaste tu contraseña?»): te llegará aquí una solicitud para aprobar.";
   async function createAdmin() {
     const e = val("accNewEmail"),
       p = ($("accNewPass") || { value: "" }).value;
@@ -984,9 +1132,11 @@ const Cloud = (() => {
       return;
     }
     try {
-      const cred = await auth.createUserWithEmailAndPassword(e, p);
-      user = cred.user;
-      await ref.update({ ["staff/" + user.uid]: { r: "admin", e: e }, accounts: true });
+      user = await createOrReuse(auth, e, p);
+      await ref.update({
+        ["staff/" + user.uid]: { r: "admin", e: e },
+        accounts: true,
+      });
       LSset("pos_accounts", "1");
       LSset("pos_role_" + user.uid, "admin");
       accountsCloud = true;
@@ -999,7 +1149,11 @@ const Cloud = (() => {
       gate();
       renderModal();
     } catch (err) {
-      Toast.error(authMsg(err.code || err.message));
+      if (err.code === "pos/exists-other-password")
+        Toast.error(
+          "Ese correo ya existe con otra contraseña. Escribe la contraseña que tenía.",
+        );
+      else Toast.error(authMsg(err.code || err.message));
     }
   }
   async function addStaff() {
@@ -1013,15 +1167,20 @@ const Cloud = (() => {
     let sec = null;
     try {
       sec = firebase.initializeApp(FIREBASE_CONFIG, "sec" + Date.now());
-      const cred = await sec.auth().createUserWithEmailAndPassword(e, p);
-      const uid = cred.user.uid;
+      const u = await createOrReuse(sec.auth(), e, p);
+      const uid = u.uid;
       await sec.auth().signOut();
       await ref.child("staff/" + uid).set({ r: r, e: e });
+      await ref
+        .child("requests/" + uid)
+        .remove()
+        .catch(() => {});
       Toast.success("✅ Cuenta agregada: " + e);
       if ($("accNewEmail")) $("accNewEmail").value = "";
       if ($("accNewPass")) $("accNewPass").value = "";
     } catch (err) {
-      Toast.error(authMsg(err.code || err.message));
+      if (err.code === "pos/exists-other-password") Toast.warning(EXISTS_MSG);
+      else Toast.error(authMsg(err.code || err.message));
     } finally {
       if (sec) {
         try {
@@ -1035,7 +1194,12 @@ const Cloud = (() => {
       Toast.error("No puedes quitarte a ti mismo");
       return;
     }
-    if (!confirm("¿Quitar el acceso a esta cuenta? Ya no podrá ver ni registrar datos.")) return;
+    if (
+      !confirm(
+        "¿Quitar el acceso a esta cuenta? Ya no podrá ver ni registrar datos.",
+      )
+    )
+      return;
     try {
       await ref.child("staff/" + uid).remove();
       Toast.success("Acceso retirado");
@@ -1048,7 +1212,13 @@ const Cloud = (() => {
   function rulesText(mode) {
     if (mode === "A")
       return JSON.stringify(
-        { rules: { pos: { $store: { ".read": "auth != null", ".write": "auth != null" } } } },
+        {
+          rules: {
+            pos: {
+              $store: { ".read": "auth != null", ".write": "auth != null" },
+            },
+          },
+        },
         null,
         2,
       );
@@ -1079,6 +1249,16 @@ const Cloud = (() => {
           ".validate":
             "newData.child('r').val() === 'admin' || newData.child('r').val() === 'employee'",
         },
+      },
+    };
+    node.requests = {
+      ".read": A,
+      $uid: {
+        ".write":
+          "auth != null && (auth.uid === $uid || " +
+          A.replace("auth != null && ", "") +
+          ")",
+        ".validate": "newData.hasChildren(['e','t'])",
       },
     };
     EMP_NODES.forEach((n) => {
@@ -1130,14 +1310,17 @@ const Cloud = (() => {
       LABEL[status] +
       "</b></div>" +
       (statusMsg ? '<p class="sync-note">' + esc(statusMsg) + "</p>" : "") +
-      (/operation-not-allowed|admin-restricted|configuration-not-found/.test(authNote)
+      (/operation-not-allowed|admin-restricted|configuration-not-found/.test(
+        authNote,
+      )
         ? '<p class="sync-note">El inicio de sesión anónimo no está activado (' +
           esc(authNote) +
           `). Si tus reglas exigen sesión, actívalo en Firebase → Authentication → Método de acceso → Anónimo.</p>`
         : "") +
       '<p class="sync-note">' +
       (lastSync
-        ? "Última sincronización: " + new Date(lastSync).toLocaleTimeString("es-CO")
+        ? "Última sincronización: " +
+          new Date(lastSync).toLocaleTimeString("es-CO")
         : "Aún sin sincronizar") +
       (pendingWrites ? " · enviando…" : "") +
       "</p>" +
@@ -1157,25 +1340,27 @@ const Cloud = (() => {
           <button
             class="btn btn-outline btn-sm"
             style="margin-top:.4rem"
-            onclick="app.hideModal('syncModal');app.logout()">Cerrar sesión</button></div>`;
-    h +=
-      `<div class="form-group">
+            onclick="app.hideModal('syncModal');app.logout()">Cerrar sesión</button>
+          <button
+            class="btn btn-outline btn-sm"
+            style="margin-top:.4rem"
+            onclick="Cloud.resetMine()">🔑 Cambiar mi contraseña</button></div>`;
+    let adv = "";
+    if (admin) {
+      adv +=
+        `<div class="form-group">
         <label class="form-label">Código del negocio</label><input class="form-input"
         id="syncCode"
         value="` +
-      esc(storeId) +
-      '" ' +
-      (admin ? "" : "disabled") +
-      ` autocapitalize="off"
+        esc(storeId) +
+        `" autocapitalize="off"
         autocomplete="off"
-        spellcheck="false"><p class="sync-note">Todos los dispositivos deben usar el mismo código para compartir los datos.</p>
-        </div>` +
-      (admin
-        ? `<button
-            class="btn btn-primary"
+        spellcheck="false"><p class="sync-note">⚠️ Solo cámbialo si sabes lo que haces: todos los dispositivos deben usar el mismo código. Pide la contraseña de administrador.</p>
+        </div><button
+            class="btn btn-outline"
             style="width:100%"
-            onclick="Cloud.saveCode()">Guardar código</button>`
-        : '<p class="sync-note">Solo el administrador puede cambiar el código.</p>');
+            onclick="Cloud.saveCode()">Cambiar código</button>`;
+    }
     if (admin && auth) {
       h += `<div class="sync-sep">
           </div>
@@ -1212,6 +1397,9 @@ const Cloud = (() => {
               " <small>(" +
               (s.r === "admin" ? "admin" : "empleado") +
               ")</small></span>" +
+              '<button class="btn btn-outline btn-sm" title="Enviar correo para cambiar la contraseña" onclick="Cloud.resetStaff(\'' +
+              esc(uid) +
+              "')\">🔑</button>" +
               (user && uid === user.uid
                 ? ""
                 : '<button class="btn btn-outline btn-sm" onclick="Cloud.removeStaff(\'' +
@@ -1221,7 +1409,27 @@ const Cloud = (() => {
             );
           })
           .join("");
+        const reqs = Object.keys(requests || {})
+          .map(
+            (uid) =>
+              '<div class="sync-dev sync-staff"><span>🔔 ' +
+              esc((requests[uid] || {}).e || uid) +
+              '</span><span><select class="form-select" id="reqRole_' +
+              esc(uid) +
+              '"><option value="employee">Empleado</option><option value="admin">Admin</option></select> ' +
+              '<button class="btn btn-primary btn-sm" onclick="Cloud.approveRequest(\'' +
+              esc(uid) +
+              "')\">Aprobar</button> " +
+              '<button class="btn btn-outline btn-sm" onclick="Cloud.rejectRequest(\'' +
+              esc(uid) +
+              "')\">✕</button></span></div>",
+          )
+          .join("");
         h +=
+          (reqs
+            ? '<p class="sync-note" style="margin-top:.6rem">Solicitudes de acceso:</p>' +
+              reqs
+            : "") +
           rows +
           `<p
               class="sync-note"
@@ -1246,7 +1454,8 @@ const Cloud = (() => {
               style="width:100%"
               onclick="Cloud.addStaff()">Agregar</button>`;
       }
-      h +=
+      h += "</div>";
+      adv +=
         `<details style="margin-top:.8rem"><summary
             class="sync-note"
             style="cursor:pointer">Reglas de Firebase recomendadas (` +
@@ -1266,14 +1475,18 @@ const Cloud = (() => {
         `</textarea><button
             class="btn btn-outline btn-sm"
             style="margin-top:.4rem"
-            onclick="Cloud.copyRules()">Copiar reglas</button></details></div>`;
+            onclick="Cloud.copyRules()">Copiar reglas</button></details>`;
     }
     h +=
       `<div class="sync-sep">
         </div>
+        <details><summary class="sync-note" style="cursor:pointer">⚙️ Opciones avanzadas</summary>` +
+      (adv ||
+        '<p class="sync-note">Solo el administrador puede ver estas opciones.</p>') +
+      `</details>
         <button
           class="btn btn-outline"
-          style="width:100%"
+          style="width:100%;margin-top:.6rem"
           onclick="Cloud.retry()">Reintentar / sincronizar ahora</button>` +
       (PWA.canInstall()
         ? `<button
@@ -1289,10 +1502,25 @@ const Cloud = (() => {
     el.innerHTML = h;
   }
   function openModal() {
+    if (!(app && app.currentRole === "admin")) {
+      Toast.info(
+        "Sincronización: " +
+          LABEL[status] +
+          (devices.length ? " · " + devices.length + " dispositivo(s)" : ""),
+      );
+      return;
+    }
     app.showModal("syncModal");
     renderModal();
+    loadRequests().then(() => {
+      if (modalOpen()) renderModal();
+    });
   }
   function saveCode() {
+    if (!(app && app.currentRole === "admin")) {
+      Toast.error("Solo el administrador puede cambiar el código");
+      return;
+    }
     const c = (document.getElementById("syncCode").value || "").trim();
     if (!/^[A-Za-z0-9_-]{3,40}$/.test(c)) {
       Toast.error("Usa 3 a 40 letras, números, - o _");
@@ -1302,10 +1530,21 @@ const Cloud = (() => {
       Toast.info("Ese ya es el código actual");
       return;
     }
-    app.persistLocal();
-    LSset("pos_store_code", c);
-    Toast.success("Código guardado. Recargando…");
-    setTimeout(() => location.reload(), 600);
+    app.hideModal("syncModal");
+    app.state.passwordCallback = () => {
+      const warn =
+        "Cambiar el código abre un espacio de datos NUEVO y vacío en este dispositivo; las ventas actuales no se mueven. ¿Continuar?";
+      if (!confirm(warn)) return;
+      app.persistLocal();
+      LSset("pos_store_code", c);
+      Toast.success("Código guardado. Recargando…");
+      setTimeout(() => location.reload(), 600);
+    };
+    document.getElementById("adminPassword").value = "";
+    document.getElementById("passwordError").style.display = "none";
+    document.getElementById("passwordModalDesc").textContent =
+      "Contraseña de administrador";
+    app.showModal("passwordModal");
   }
   function retry() {
     if (!ref) {
@@ -1356,6 +1595,10 @@ const Cloud = (() => {
     createAdmin,
     addStaff,
     removeStaff,
+    approveRequest,
+    rejectRequest,
+    resetMine,
+    resetStaff,
     copyRules,
     rulesText,
     now: () => Date.now() + offset,

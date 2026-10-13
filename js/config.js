@@ -31,4 +31,4 @@ const FIREBASE_SDK_URL = "https://www.gstatic.com/firebasejs/10.14.1/";
 
 const FIREBASE_SDK_LOCAL = "vendor/firebase/";
 
-const APP_VERSION = "2.1.0";
+const APP_VERSION = "2.1.1";
