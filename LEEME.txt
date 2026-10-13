@@ -1,4 +1,4 @@
-LA PLAZOLETA DEL POLLO - POS  (versión 2.1.0)
+LA PLAZOLETA DEL POLLO - POS  (versión 2.1.1)
 =============================================
 
 CONTENIDO DE ESTA CARPETA
@@ -70,3 +70,18 @@ NOVEDADES 2.1.0
   - Si ya tenías productos en la categoría "Otros", ahora SÍ aparecen en Vender.
   - IMPORTANTE: si usas cuentas (paso 3), vuelve a pegar firebase-reglas-2-con-cuentas.json
     en Firebase: incluye la nueva sección "categories".
+
+CAMBIOS 2.1.1 (cuentas y sincronización)
+  - La ventana «Sincronización» ya no se abre para empleados (el icono de nube solo les muestra
+    el estado). El administrador la ve con lo esencial; el código del negocio, las reglas y la
+    instalación están en «Opciones avanzadas», y cambiar el código pide la contraseña de admin.
+  - Cuenta quitada y vuelta a registrar: si el correo ya existía en Firebase, la app la reactiva
+    si escribes la contraseña que tenía. Si no la recuerdan, la persona entra con «Entrar con una
+    cuenta» (puede usar «¿Olvidaste tu contraseña?») y al administrador le llega una solicitud
+    de acceso para aprobar en ☁️ Sincronización.
+  - Recuperar contraseña: «¿Olvidaste tu contraseña?» en la pantalla de entrada; además el admin
+    puede enviar el correo de cambio (botón 🔑) a cualquier persona o a sí mismo.
+  - Vuelve a pegar firebase-reglas-2-con-cuentas.json en Firebase (nueva sección «requests»).
+    Sin esas reglas las solicitudes de acceso no se guardan.
+  - Firebase no permite borrar cuentas desde la app: «Quitar» retira el acceso, pero el correo
+    sigue existiendo en Authentication (puedes borrarlo ahí si quieres).

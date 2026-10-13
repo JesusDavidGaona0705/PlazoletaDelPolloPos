@@ -15,6 +15,13 @@
             ".validate": "newData.child('r').val() === 'admin' || newData.child('r').val() === 'employee'"
           }
         },
+        "requests": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'",
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin')",
+            ".validate": "newData.hasChildren(['e','t'])"
+          }
+        },
         "sales": {
           ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
           ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
