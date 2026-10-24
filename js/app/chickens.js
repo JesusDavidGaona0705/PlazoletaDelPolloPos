@@ -2,7 +2,9 @@
 
 Object.assign(POSApp.prototype, {
   saveGoal() {
-    const g = Utils.parseFormattedNumber(document.getElementById("dailyGoal").value);
+    const g = Utils.parseFormattedNumber(
+      document.getElementById("dailyGoal").value,
+    );
     if (g <= 0) {
       Toast.error("Meta inválida");
       return;
@@ -26,7 +28,9 @@ Object.assign(POSApp.prototype, {
   openChickenModal() {
     const ch = this.state.chickens;
     document.getElementById("chickensRaw").value = Utils.formatQty(ch.raw || 0);
-    document.getElementById("chickensCooked").value = Utils.formatQty(ch.cooked || 0);
+    document.getElementById("chickensCooked").value = Utils.formatQty(
+      ch.cooked || 0,
+    );
     this.updateChickenTotalPreview();
     this.showModal("chickenModal");
   },
@@ -34,7 +38,8 @@ Object.assign(POSApp.prototype, {
   updateChickenTotalPreview() {
     const r = Utils.parseQty(document.getElementById("chickensRaw").value);
     const c = Utils.parseQty(document.getElementById("chickensCooked").value);
-    document.getElementById("chickenTotalPreview").textContent = Utils.formatChickens(r + c);
+    document.getElementById("chickenTotalPreview").textContent =
+      Utils.formatChickens(r + c);
   },
 
   saveChickenCount() {
@@ -60,12 +65,10 @@ Object.assign(POSApp.prototype, {
       Toast.warning("Sin crudos");
       return;
     }
-    document.getElementById("cookAvailableRaw").textContent = Utils.formatChickens(
-      this.state.chickens.raw,
-    );
-    document.getElementById("cookCurrentCooked").textContent = Utils.formatChickens(
-      this.state.chickens.cooked,
-    );
+    document.getElementById("cookAvailableRaw").textContent =
+      Utils.formatChickens(this.state.chickens.raw);
+    document.getElementById("cookCurrentCooked").textContent =
+      Utils.formatChickens(this.state.chickens.cooked);
     document.getElementById("cookQuantity").value = "";
     this.showModal("cookModal");
   },
@@ -77,7 +80,9 @@ Object.assign(POSApp.prototype, {
       return;
     }
     if (q > this.state.chickens.raw + 1e-9) {
-      Toast.error(`Solo ${Utils.formatChickens(this.state.chickens.raw)} crudos`);
+      Toast.error(
+        `Solo ${Utils.formatChickens(this.state.chickens.raw)} crudos`,
+      );
       return;
     }
     this.state.chickens.raw = Math.max(0, this.state.chickens.raw - q);
@@ -111,7 +116,9 @@ Object.assign(POSApp.prototype, {
     this.state.chickens.cooked = Math.max(0, this.state.chickens.cooked - q);
     document.getElementById("mermaQuantity").value = "";
     document.getElementById("mermaDetail").value = "";
-    document.querySelectorAll(".merma-type-btn").forEach((b) => b.classList.remove("active"));
+    document
+      .querySelectorAll(".merma-type-btn")
+      .forEach((b) => b.classList.remove("active"));
     this.state.selectedMermaType = null;
     this.saveState();
     this.render();
@@ -125,7 +132,10 @@ Object.assign(POSApp.prototype, {
     document
       .querySelectorAll(".usage-source-btn")
       .forEach((b) =>
-        b.classList.toggle("active", b.dataset.source === this.state.selectedUsageSource),
+        b.classList.toggle(
+          "active",
+          b.dataset.source === this.state.selectedUsageSource,
+        ),
       );
   },
 
@@ -169,13 +179,19 @@ Object.assign(POSApp.prototype, {
     });
     document.getElementById("usageQuantity").value = "";
     document.getElementById("usageDetail").value = "";
-    document.querySelectorAll(".usage-type-btn").forEach((b) => b.classList.remove("active"));
+    document
+      .querySelectorAll(".usage-type-btn")
+      .forEach((b) => b.classList.remove("active"));
     this.state.selectedUsageType = null;
     this.saveState();
     this.render();
-    this.logActivity(`Uso: ${Utils.formatChickens(q)} ${t}${deduct ? ` (de ${what})` : ""}`);
+    this.logActivity(
+      `Uso: ${Utils.formatChickens(q)} ${t}${deduct ? ` (de ${what})` : ""}`,
+    );
     Toast.success(
-      deduct ? `Registrado: se descontaron ${Utils.formatChickens(q)} ${what}` : "Registrado",
+      deduct
+        ? `Registrado: se descontaron ${Utils.formatChickens(q)} ${what}`
+        : "Registrado",
     );
   },
 
@@ -217,7 +233,8 @@ Object.assign(POSApp.prototype, {
       .reverse()
       .map((u) => {
         let note = "";
-        if (u.deduct) note = ` (descontó de ${SOURCE_LABEL[u.source] || "asados"})`;
+        if (u.deduct)
+          note = ` (descontó de ${SOURCE_LABEL[u.source] || "asados"})`;
         else if (u.deduct === false) note = " (sin descontar)";
         const detail = u.detail ? ` - ${Utils.sanitizeInput(u.detail)}` : "";
         return `

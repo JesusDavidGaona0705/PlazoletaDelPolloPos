@@ -22,12 +22,16 @@ Object.assign(POSApp.prototype, {
     return Object.assign({}, RECEIPT_DEFAULTS, s);
   },
 
+  /* Consecutivo de facturas: contador sincronizado (no se reinicia al cerrar el día). */
   nextInvoiceNumber() {
     const all = [
       ...(this.state.sales || []),
       ...(this.state.pendingSales || []),
     ];
-    return all.reduce((m, s) => Math.max(m, +s.number || 0), 0) + 1;
+    const maxUsed = all.reduce((m, s) => Math.max(m, +s.number || 0), 0);
+    const n = Math.max(+this.state.invoiceSeq || 0, maxUsed) + 1;
+    this.state.invoiceSeq = n;
+    return n;
   },
 
   currentUserLabel() {
@@ -99,16 +103,16 @@ Object.assign(POSApp.prototype, {
     }
     const logo = screen ? RECEIPT_LOGO.color : RECEIPT_LOGO.print;
     const css = `
-      @page{size:${screen ? "auto" : (c.paper === 58 ? 58 : 80) + "mm auto"};margin:0}
+      @page{margin:0}
       *{box-sizing:border-box}
       html,body{margin:0;padding:0;background:${screen ? "#e9e2d3" : "#fff"}}
       body{font-family:"Courier New",Courier,monospace;color:#000;font-size:${screen ? 13 : 12}px;
         line-height:1.25;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      .rc{width:${width}${unit};margin:0 auto;padding:${screen ? "0 0 14px" : "2mm 0 5mm"};
+      .rc{width:${width}${unit};margin:0 auto;padding:${screen ? "0 0 14px" : c.paper === 58 ? "1mm 2mm 3mm" : "1mm 3.5mm 3mm"};
         background:${screen ? "#fbf5e6" : "#fff"}}
       .hd{text-align:center;padding:${screen ? "14px 12px 10px" : "0 0 2mm"};
         ${screen ? "background:#d90f1b;" : ""}}
-      .hd img{display:block;width:${screen ? "86%" : "100%"};margin:0 auto}
+      .hd img{display:block;width:${screen ? "72%" : "70%"};margin:0 auto}
       .sl{text-align:center;font-weight:700;font-size:${screen ? 11 : 10.5}px;margin:6px 0 2px;letter-spacing:.02em}
       .meta{display:flex;justify-content:space-between;white-space:nowrap;font-weight:700;font-size:${screen ? 12 : 11.5}px;margin:4px ${screen ? "12px" : "0"}}
       .sep{border:0;border-top:2px dashed #000;margin:6px ${screen ? "12px" : "0"}}
@@ -128,7 +132,7 @@ Object.assign(POSApp.prototype, {
       .ft .th{font-weight:700;font-size:${screen ? 14 : 13.5}px;margin:6px 0 2px}
       .qr{width:${screen ? "110px" : "27mm"};margin:6px auto 2px}
       .qr svg{width:100%;height:auto;display:block;shape-rendering:crispEdges}
-      .cut{height:6mm}`;
+      .cut{height:4mm}`;
     return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Factura ${e(num)}</title>
       <meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body>
       <div class="rc">
@@ -167,11 +171,12 @@ Object.assign(POSApp.prototype, {
   printHtml(html) {
     const old = document.getElementById("printFrame");
     if (old) old.remove();
+    const paper = this.getReceiptCfg().paper === 58 ? 58 : 80;
     const f = document.createElement("iframe");
     f.id = "printFrame";
     f.setAttribute("aria-hidden", "true");
-    f.style.cssText =
-      "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+    /* Fuera de la pantalla pero con el ancho real del papel, para medir el alto exacto */
+    f.style.cssText = `position:fixed;left:-10000px;top:0;width:${paper}mm;height:200px;border:0`;
     document.body.appendChild(f);
     const d = f.contentWindow.document;
     d.open();
@@ -179,6 +184,13 @@ Object.assign(POSApp.prototype, {
     d.close();
     const go = () => {
       try {
+        /* Página del tamaño exacto de la factura: sin hoja en blanco ni espacio de más */
+        const rc = d.querySelector(".rc");
+        const px = rc ? Math.ceil(rc.getBoundingClientRect().height) : 0;
+        const mm = Math.max(40, Math.ceil((px * 25.4) / 96) + 2);
+        const st = d.createElement("style");
+        st.textContent = `@page{size:${paper}mm ${mm}mm;margin:0}html,body{height:auto}`;
+        d.head.appendChild(st);
         f.contentWindow.focus();
         f.contentWindow.print();
       } catch (err) {

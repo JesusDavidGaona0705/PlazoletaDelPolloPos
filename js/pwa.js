@@ -13,13 +13,16 @@ const PWA = (() => {
     deferred = null;
   });
   function register() {
-    if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
+    if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol))
+      return;
     navigator.serviceWorker
       .register("sw.js")
       .then((reg) => {
         const notify = () => {
           if (reg.waiting && navigator.serviceWorker.controller)
-            Toast.info("🔄 Hay una versión nueva. Se aplicará al cerrar y volver a abrir la app");
+            Toast.info(
+              "🔄 Hay una versión nueva. Se aplicará al cerrar y volver a abrir la app",
+            );
         };
         notify();
         reg.addEventListener("updatefound", () => {

@@ -129,7 +129,6 @@ Object.assign(POSApp.prototype, {
         price: p.price,
         quantity: 1,
         emoji: this.emojiOf(p),
-        image: p.image,
         ...this.chickenFields(p),
       });
       this.renderEditSaleProducts();
@@ -143,6 +142,7 @@ Object.assign(POSApp.prototype, {
   },
 
   showEditVariantModal(p) {
+    document.getElementById("editVariantModal")?.remove();
     const c = document.createElement("div");
     c.className = "modal-overlay";
     c.id = "editVariantModal";
@@ -150,7 +150,7 @@ Object.assign(POSApp.prototype, {
       <button
         class="modal-close"
         aria-label="Cerrar"
-        onclick="document.getElementById('editVariantModal').classList.remove('active')">&times;</button></div>
+        onclick="document.getElementById('editVariantModal').remove()">&times;</button></div>
       <div class="variant-options">${p.variants.map((v) => `<div class="variant-option" onclick="app.addVariantToEditSale('${p.id}','${v.id}')"><div class="variant-emoji">${Utils.sanitizeInput(v.emoji || "🍽️")}</div><div class="variant-option-info"><div class="variant-option-name">${Utils.sanitizeInput(v.name)}</div><div class="variant-option-price">${Utils.formatCurrency(p.price + v.price)}</div></div></div>`).join("")}</div></div>`;
     document.body.appendChild(c);
     setTimeout(() => c.classList.add("active"), 10);
@@ -161,7 +161,7 @@ Object.assign(POSApp.prototype, {
 
   addVariantToEditSale(pid, vid) {
     const p = this.state.products.find((x) => x.id === pid),
-      v = p.variants.find((x) => x.id === vid);
+      v = p && (p.variants || []).find((x) => x.id === vid);
     if (!p || !v) return;
     this.state.editSaleTempItems.push({
       cartKey: `${pid}-${vid}-${Utils.now()}`,
@@ -171,7 +171,6 @@ Object.assign(POSApp.prototype, {
       price: p.price + v.price,
       quantity: 1,
       emoji: v.emoji || this.emojiOf(p),
-      image: p.image,
       ...this.chickenFields(p),
     });
     const m = document.getElementById("editVariantModal");
@@ -230,7 +229,22 @@ Object.assign(POSApp.prototype, {
       s.total = total;
       s.paymentMethod = pm;
       s.status = st;
+      /* Mantener el reparto del pago coherente con el nuevo total/método (cuadre de caja) */
+      if (pm === "mixto") {
+        s.mixtoEfectivo = Math.min(+s.mixtoEfectivo || 0, total);
+        s.mixtoTransferencia = total - s.mixtoEfectivo;
+      } else {
+        s.mixtoEfectivo = 0;
+        s.mixtoTransferencia = 0;
+      }
+      if (pm === "efectivo" && s.cashReceived)
+        s.change = Math.max(0, s.cashReceived - total);
+      else s.change = 0;
     };
+    if (st === "pendiente" && !this.state.clients.some((c) => c.id === cid)) {
+      Toast.error("Una venta pendiente necesita un cliente registrado");
+      return;
+    }
     if (this.state.editSaleIsPending) {
       const s = this.state.pendingSales.find((x) => x.id === sid);
       if (s) {

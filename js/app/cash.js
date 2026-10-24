@@ -2,7 +2,9 @@
 
 Object.assign(POSApp.prototype, {
   saveCashFund() {
-    const a = Utils.parseFormattedNumber(document.getElementById("cashFundInput").value);
+    const a = Utils.parseFormattedNumber(
+      document.getElementById("cashFundInput").value,
+    );
     if (a < 0) {
       Toast.error("Inválido");
       return;
@@ -16,7 +18,9 @@ Object.assign(POSApp.prototype, {
   },
 
   registerExpense() {
-    const a = Utils.parseFormattedNumber(document.getElementById("expenseAmount").value);
+    const a = Utils.parseFormattedNumber(
+      document.getElementById("expenseAmount").value,
+    );
     const d = document.getElementById("expenseDetail").value.trim();
     const cat = this.state.selectedExpenseCategory;
     if (!a || a <= 0) {
@@ -48,20 +52,36 @@ Object.assign(POSApp.prototype, {
 
   updateArqueoPreview() {
     const physical =
-      Utils.parseFormattedNumber(document.getElementById("cashCountPhysical").value) || 0;
-    const totalEfectivo = this.state.sales.reduce((t, s) => t + this.saleCash(s), 0);
+      Utils.parseFormattedNumber(
+        document.getElementById("cashCountPhysical").value,
+      ) || 0;
+    const totalEfectivo = this.state.sales.reduce(
+      (t, s) => t + this.saleCash(s),
+      0,
+    );
     const totalGastos = this.state.expenses.reduce((t, e) => t + e.amount, 0);
     const expected = totalEfectivo - totalGastos + this.state.cashFund;
     const diff = physical - expected;
-    document.getElementById("cashExpectedArqueo").textContent = Utils.formatCurrency(expected);
-    document.getElementById("cashDifference").textContent = Utils.formatCurrency(diff);
+    document.getElementById("cashExpectedArqueo").textContent =
+      Utils.formatCurrency(expected);
+    document.getElementById("cashDifference").textContent =
+      Utils.formatCurrency(diff);
     document.getElementById("cashDifference").style.color =
-      diff === 0 ? "var(--success)" : diff > 0 ? "var(--info)" : "var(--danger)";
+      diff === 0
+        ? "var(--success)"
+        : diff > 0
+          ? "var(--info)"
+          : "var(--danger)";
   },
 
   registerArqueo() {
-    const physical = Utils.parseFormattedNumber(document.getElementById("cashCountPhysical").value);
-    const totalEfectivo = this.state.sales.reduce((t, s) => t + this.saleCash(s), 0);
+    const physical = Utils.parseFormattedNumber(
+      document.getElementById("cashCountPhysical").value,
+    );
+    const totalEfectivo = this.state.sales.reduce(
+      (t, s) => t + this.saleCash(s),
+      0,
+    );
     const totalGastos = this.state.expenses.reduce((t, e) => t + e.amount, 0);
     const expected = totalEfectivo - totalGastos + this.state.cashFund;
     const diff = physical - expected;
@@ -96,23 +116,28 @@ Object.assign(POSApp.prototype, {
     document.getElementById("leftoverRawForTomorrow").value = Utils.formatQty(
       this.state.chickens.raw || 0,
     );
-    document.getElementById("leftoverCookedForTomorrow").value = Utils.formatQty(
-      this.state.chickens.cooked || 0,
-    );
+    document.getElementById("leftoverCookedForTomorrow").value =
+      Utils.formatQty(this.state.chickens.cooked || 0);
     document.getElementById("resetPassword").value = "";
     this.showModal("resetDayModal");
   },
 
   async resetDay() {
     const p = document.getElementById("resetPassword").value;
-    const lr = Utils.parseQty(document.getElementById("leftoverRawForTomorrow").value);
-    const lc = Utils.parseQty(document.getElementById("leftoverCookedForTomorrow").value);
+    const lr = Utils.parseQty(
+      document.getElementById("leftoverRawForTomorrow").value,
+    );
+    const lc = Utils.parseQty(
+      document.getElementById("leftoverCookedForTomorrow").value,
+    );
     if (!(await Cloud.checkPassword(p))) {
       Toast.error("Incorrecta");
       return;
     }
     const cut = Utils.now() - 180 * 864e5;
-    const oldStock = this.state.stockHistory.filter((e) => (e.timestamp || 0) < cut);
+    const oldStock = this.state.stockHistory.filter(
+      (e) => (e.timestamp || 0) < cut,
+    );
     const oldArq = this.state.arqueos.filter((e) => (e.timestamp || 0) < cut);
     const archive = {
       date: Utils.localDate(),
@@ -122,29 +147,40 @@ Object.assign(POSApp.prototype, {
       usageHistory: this.state.usageHistory,
       mermas: this.state.mermas,
       totalChickensSold: this.state.totalChickensSold,
+      cashFund: this.state.cashFund || 0,
+      arqueosDia: this.state.arqueos.filter(
+        (e) => (e.timestamp || 0) >= Utils.now() - 864e5,
+      ),
       pendingSales: JSON.parse(JSON.stringify(this.state.pendingSales)),
       trimmed: { stockHistory: oldStock, arqueos: oldArq },
       archivedAt: Utils.now(),
     };
     const archives = Storage_get("archives", []);
     archives.push(archive);
-    Storage_set("archives", archives);
+    /* En el dispositivo solo se guardan los últimos 60 cierres (en la nube quedan todos):
+       sin este límite el almacenamiento del navegador se llena y la app deja de guardar. */
+    Storage_set("archives", archives.slice(-60));
     Cloud.pushArchive(archive);
     this.state.sales = [];
     this.state.expenses = [];
     this.state.mermas = [];
-    this.state.stockHistory = this.state.stockHistory.filter((e) => (e.timestamp || 0) >= cut);
-    this.state.arqueos = this.state.arqueos.filter((e) => (e.timestamp || 0) >= cut);
+    this.state.stockHistory = this.state.stockHistory.filter(
+      (e) => (e.timestamp || 0) >= cut,
+    );
+    this.state.arqueos = this.state.arqueos.filter(
+      (e) => (e.timestamp || 0) >= cut,
+    );
     this.state.chickens = { raw: lr, cooked: lc };
     this.state.usageHistory = [];
     this.state.totalChickensSold = 0;
+    this.state.cashFund = 0;
     this.ventasDesgloseOpen = false;
     this.hideModal("resetDayModal");
     document.getElementById("resetPassword").value = "";
     this.saveState();
     this.render();
     this.logActivity("Día reseteado");
-    Toast.success("✅ Resetado");
+    Toast.success("✅ Nuevo día iniciado · fondo de caja en $0");
   },
 
   renderExpenses() {

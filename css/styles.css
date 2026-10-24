@@ -2246,3 +2246,39 @@ body[data-section="sell"] .cart-bar.has-items {
   border-radius: var(--rs);
   background: #e9e2d3;
 }
+
+/* ---------- Vender: botones para saltar a una categoría ---------- */
+.sell-cat-nav {
+  position: sticky;
+  top: var(--hdr-h, 56px);
+  z-index: 50;
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.45rem 0.1rem;
+  margin: -0.25rem 0 0.6rem;
+  background: var(--bg);
+  scrollbar-width: none;
+}
+.sell-cat-nav::-webkit-scrollbar {
+  display: none;
+}
+.sell-cat-chip {
+  flex: 0 0 auto;
+  border: 1px solid var(--bd);
+  background: var(--bg2);
+  color: var(--tx);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  min-height: 40px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sell-cat-chip.active,
+.sell-cat-chip:active {
+  border-color: var(--primary);
+  color: var(--primary);
+}

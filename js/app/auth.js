@@ -68,7 +68,9 @@ Object.assign(POSApp.prototype, {
 
   loginFromCloud(role, email) {
     this.accountEmail = email;
-    const hidden = document.getElementById("loginScreen").classList.contains("hidden");
+    const hidden = document
+      .getElementById("loginScreen")
+      .classList.contains("hidden");
     if (hidden && this.currentRole) {
       if (this.currentRole !== role) {
         this.currentRole = role;
@@ -85,7 +87,9 @@ Object.assign(POSApp.prototype, {
     delete document.body.dataset.section;
     document.body.classList.remove("modal-open");
     document.getElementById("loginScreen").classList.remove("hidden");
-    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+    document
+      .querySelectorAll(".section")
+      .forEach((s) => s.classList.remove("active"));
   },
 
   finishLogin() {
@@ -94,7 +98,9 @@ Object.assign(POSApp.prototype, {
     setTimeout(() => {
       document.getElementById("loadingScreen").classList.add("hidden");
       this.setupAppForRole();
-      Toast.success(`Bienvenido ${this.currentRole === "admin" ? "Admin" : "Empleado"}`);
+      Toast.success(
+        `Bienvenido ${this.currentRole === "admin" ? "Admin" : "Empleado"}`,
+      );
     }, 400);
   },
 
@@ -107,7 +113,9 @@ Object.assign(POSApp.prototype, {
     this.ventasDesgloseOpen = false;
     document.getElementById("loginScreen").classList.remove("hidden");
     document.getElementById("loginPasswordSection").style.display = "none";
-    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+    document
+      .querySelectorAll(".section")
+      .forEach((s) => s.classList.remove("active"));
   },
 
   setupAppForRole() {
@@ -118,10 +126,13 @@ Object.assign(POSApp.prototype, {
       this.currentRole === "admin" ? "Modo Administrador" : "Modo Empleado";
     document
       .querySelectorAll(".admin-only")
-      .forEach((el) => (el.style.display = this.currentRole === "admin" ? "" : "none"));
+      .forEach(
+        (el) => (el.style.display = this.currentRole === "admin" ? "" : "none"),
+      );
     document.getElementById("adminChickenActions").style.display =
       this.currentRole === "admin" ? "grid" : "none";
-    document.getElementById("goalCard").style.display = this.currentRole === "admin" ? "" : "none";
+    document.getElementById("goalCard").style.display =
+      this.currentRole === "admin" ? "" : "none";
     if (this.currentRole === "admin" && this.ensureData(true)) this.saveState();
     this.buildNavigation();
     this.showSection("home");
@@ -160,7 +171,10 @@ Object.assign(POSApp.prototype, {
   showSection(name) {
     if (
       this.currentRole !== "admin" &&
-      (name === "cash" || name === "products" || name === "reports" || name === "clients")
+      (name === "cash" ||
+        name === "products" ||
+        name === "reports" ||
+        name === "clients")
     ) {
       Toast.error("Solo admin");
       return;
@@ -168,7 +182,9 @@ Object.assign(POSApp.prototype, {
     document
       .querySelectorAll(".nav-item")
       .forEach((i) => i.classList.toggle("active", i.dataset.section === name));
-    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+    document
+      .querySelectorAll(".section")
+      .forEach((s) => s.classList.remove("active"));
     const map = {
       home: "homeSection",
       sell: "sellSection",
@@ -195,7 +211,9 @@ Object.assign(POSApp.prototype, {
     }
     this.state.passwordCallback = () => {
       this.showModal("cashFundModal");
-      document.getElementById("cashFundInput").value = Utils.formatNumber(this.state.cashFund || 0);
+      document.getElementById("cashFundInput").value = Utils.formatNumber(
+        this.state.cashFund || 0,
+      );
     };
     document.getElementById("adminPassword").value = "";
     document.getElementById("passwordError").style.display = "none";

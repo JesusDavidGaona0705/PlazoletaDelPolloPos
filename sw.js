@@ -1,8 +1,9 @@
 /* Service worker: permite abrir la app sin internet y acelera la carga.
-   - Archivos propios y librerías: se guardan al primer uso.
+   - Código propio (js/css): primero la red, si no hay internet la copia guardada.
+   - Librerías, fuentes e íconos: se guardan al primer uso.
    - Página principal: busca la versión nueva en la red y, si no hay internet, usa la guardada.
    - No toca las conexiones a Firebase (base de datos y cuentas). */
-const VERSION='pollo-pos-2.2.0';
+const VERSION='pollo-pos-2.2.1';
 const PRECACHE = [
   './',
   'index.html',
@@ -57,6 +58,12 @@ self.addEventListener('fetch',e=>{
    try{const res=await Promise.race([fetch(req),new Promise((_,rj)=>setTimeout(()=>rj(new Error('lento')),4000))]);
     if(res&&res.ok){cache.put('index.html',res.clone())}return res}
    catch(err){return (await cache.match('index.html'))||(await cache.match('./'))||Response.error()}})());return}
+ if(mine&&/\.(js|css|html|json|webmanifest)$/.test(url.pathname)){
+  /* Código propio: primero la red (así nunca se mezcla HTML nuevo con JS viejo); sin internet, la copia guardada */
+  e.respondWith((async()=>{const cache=await caches.open(VERSION);
+   try{const res=await Promise.race([fetch(req,{cache:'no-cache'}),new Promise((_,rj)=>setTimeout(()=>rj(new Error('lento')),4000))]);
+    if(res&&res.ok)cache.put(req,res.clone());return res}
+   catch(err){return (await cache.match(req))||Response.error()}})());return}
  e.respondWith((async()=>{const cache=await caches.open(VERSION);const hit=await cache.match(req);
   const net=fetch(req).then(res=>{if(res&&(res.ok||res.type==='opaque'))cache.put(req,res.clone());return res}).catch(()=>null);
   return hit||(await net)||Response.error()})())});

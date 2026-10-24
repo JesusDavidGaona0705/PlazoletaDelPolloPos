@@ -49,8 +49,16 @@ function sha256(str) {
     let [a, b, c, d, e, f, g, h] = H;
     for (let j = 0; j < 64; j++) {
       const t1 =
-          (h + (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) + ((e & f) ^ (~e & g)) + K[j] + w[j]) | 0,
-        t2 = ((rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+          (h +
+            (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) +
+            ((e & f) ^ (~e & g)) +
+            K[j] +
+            w[j]) |
+          0,
+        t2 =
+          ((rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) +
+            ((a & b) ^ (a & c) ^ (b & c))) |
+          0;
       h = g;
       g = f;
       f = e;

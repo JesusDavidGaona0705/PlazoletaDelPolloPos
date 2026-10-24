@@ -74,7 +74,9 @@ Object.assign(POSApp.prototype, {
   },
 
   exportReportCSV() {
-    const rows = [["Fecha", "Cliente", "Items", "Metodo", "Total", "Descuento"]];
+    const rows = [
+      ["Fecha", "Cliente", "Items", "Metodo", "Total", "Descuento"],
+    ];
     this.state.sales.forEach((s) =>
       rows.push([
         new Date(s.timestamp).toLocaleString("es-CO"),
@@ -107,23 +109,28 @@ Object.assign(POSApp.prototype, {
       c = this.state.chickens.cooked || 0;
     document.getElementById("homeCrudos").textContent = Utils.formatChickens(r);
     document.getElementById("homeAsados").textContent = Utils.formatChickens(c);
-    document.getElementById("homeTotal").textContent = Utils.formatChickens(r + c);
-    document.getElementById("headerCrudos").textContent = Utils.formatChickens(r);
-    document.getElementById("headerAsados").textContent = Utils.formatChickens(c);
+    document.getElementById("homeTotal").textContent = Utils.formatChickens(
+      r + c,
+    );
+    document.getElementById("headerCrudos").textContent =
+      Utils.formatChickens(r);
+    document.getElementById("headerAsados").textContent =
+      Utils.formatChickens(c);
     const cb = document.getElementById("cookBtn");
     if (cb) cb.disabled = r <= 0;
     const tv = this.state.sales.reduce((t, s) => t + s.total, 0);
     const te = this.state.sales.reduce((t, s) => t + this.saleCash(s), 0);
     const tt = this.state.sales.reduce((t, s) => t + this.saleTransfer(s), 0);
-    document.getElementById("dashVentas").textContent = Utils.formatCurrency(tv);
-    document.getElementById("ventasEfectivo").textContent = Utils.formatCurrency(te);
-    document.getElementById("ventasTransferencia").textContent = Utils.formatCurrency(tt);
-    document.getElementById("dashTransacciones").textContent = Utils.formatNumber(
-      this.state.sales.length,
-    );
-    document.getElementById("dashPollosVendidos").textContent = Utils.formatChickens(
-      this.state.totalChickensSold || 0,
-    );
+    document.getElementById("dashVentas").textContent =
+      Utils.formatCurrency(tv);
+    document.getElementById("ventasEfectivo").textContent =
+      Utils.formatCurrency(te);
+    document.getElementById("ventasTransferencia").textContent =
+      Utils.formatCurrency(tt);
+    document.getElementById("dashTransacciones").textContent =
+      Utils.formatNumber(this.state.sales.length);
+    document.getElementById("dashPollosVendidos").textContent =
+      Utils.formatChickens(this.state.totalChickensSold || 0);
     document.getElementById("dashPendientes").textContent = Utils.formatNumber(
       this.state.pendingSales.length,
     );
@@ -131,7 +138,9 @@ Object.assign(POSApp.prototype, {
     document.getElementById("cashExpected").textContent = Utils.formatCurrency(
       te - te2 + this.state.cashFund,
     );
-    document.getElementById("cashFund").textContent = Utils.formatCurrency(this.state.cashFund);
+    document.getElementById("cashFund").textContent = Utils.formatCurrency(
+      this.state.cashFund,
+    );
     const pc = this.state.pendingSales.length;
     ["pendingBadge", "pendingBadgeCash"].forEach((id) => {
       const b = document.getElementById(id);
@@ -143,10 +152,14 @@ Object.assign(POSApp.prototype, {
     document.getElementById("goalCurrent").textContent = Utils.formatChickens(
       this.state.totalChickensSold || 0,
     );
-    document.getElementById("goalTarget").textContent = Utils.formatNumber(this.state.dailyGoal);
+    document.getElementById("goalTarget").textContent = Utils.formatNumber(
+      this.state.dailyGoal,
+    );
     const pct = Math.min(
       100,
-      Math.round(((this.state.totalChickensSold || 0) / this.state.dailyGoal) * 100),
+      Math.round(
+        ((this.state.totalChickensSold || 0) / this.state.dailyGoal) * 100,
+      ),
     );
     document.getElementById("goalBar").style.width = pct + "%";
     document.getElementById("goalBar").textContent = pct >= 10 ? pct + "%" : "";
@@ -168,7 +181,7 @@ Object.assign(POSApp.prototype, {
       .slice(0, 50)
       .map(
         (l) =>
-          `<div class="log-item"><div class="log-time">${Utils.formatDateFull(l.time)} • ${l.user}</div><div>${Utils.sanitizeInput(l.msg)}</div></div>`,
+          `<div class="log-item"><div class="log-time">${Utils.formatDateFull(l.time)} • ${Utils.sanitizeInput(l.user)}</div><div>${Utils.sanitizeInput(l.msg)}</div></div>`,
       )
       .join("");
   },
@@ -183,15 +196,18 @@ Object.assign(POSApp.prototype, {
       }),
     );
     const top = Object.entries(prodCount).sort((a, b) => b[1] - a[1])[0];
-    document.getElementById("repVentasHoy").textContent = Utils.formatCurrency(tv);
-    document.getElementById("repPromedio").textContent = Utils.formatCurrency(avg);
+    document.getElementById("repVentasHoy").textContent =
+      Utils.formatCurrency(tv);
+    document.getElementById("repPromedio").textContent =
+      Utils.formatCurrency(avg);
     document.getElementById("repTop").textContent = top
       ? `${top[0].substring(0, 10)} (${Utils.formatNumber(top[1])})`
       : "-";
     const lowStock = this.state.products.filter(
       (p) => p.category !== "pollo" && p.active !== false && p.stock <= 3,
     ).length;
-    document.getElementById("repStockBajo").textContent = Utils.formatNumber(lowStock);
+    document.getElementById("repStockBajo").textContent =
+      Utils.formatNumber(lowStock);
     const hourData = {};
     for (let i = 0; i < 24; i++) hourData[i] = 0;
     this.state.sales.forEach((s) => {

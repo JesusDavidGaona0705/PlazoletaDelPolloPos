@@ -47,6 +47,17 @@ Object.assign(POSApp.prototype, {
         '<div class="empty-state"><i class="fas fa-box-open"></i><p>Sin productos</p></div>';
       return;
     }
+    const nav = document.getElementById("sellCatNav");
+    if (nav) {
+      nav.style.display = sections.length > 1 ? "" : "none";
+      nav.innerHTML = sections
+        .map(
+          ({ c }) =>
+            `<button type="button" class="sell-cat-chip" data-cat="${Utils.sanitizeInput(c.id)}"
+              onclick="app.jumpToCategory(this.dataset.cat)">${Utils.sanitizeInput(c.emoji)} ${Utils.sanitizeInput(c.name)}</button>`,
+        )
+        .join("");
+    }
     box.innerHTML = sections
       .map(({ c, items }) => {
         const kind = this.categoryKind(c.id);
@@ -66,6 +77,24 @@ Object.assign(POSApp.prototype, {
         </div>`;
       })
       .join("");
+  },
+
+  /* Botones superiores: saltar a una categoría sin desplazarse a mano. */
+  jumpToCategory(id) {
+    const sec = Array.from(
+      document.querySelectorAll("#sellSections .product-section"),
+    ).find((el) => el.dataset.category === id);
+    if (!sec) return;
+    const hdr = document.querySelector(".header");
+    const nav = document.getElementById("sellCatNav");
+    const off = (hdr ? hdr.offsetHeight : 0) + (nav ? nav.offsetHeight : 0) + 8;
+    const y = sec.getBoundingClientRect().top + window.scrollY - off;
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    document.querySelectorAll("#sellCatNav .sell-cat-chip").forEach((b) => {
+      b.classList.toggle("active", b.dataset.cat === id);
+      if (b.dataset.cat === id && b.scrollIntoView)
+        b.scrollIntoView({ inline: "nearest", block: "nearest" });
+    });
   },
 
   handleProductClick(pid) {
@@ -126,7 +155,6 @@ Object.assign(POSApp.prototype, {
         price: fp,
         quantity: 1,
         emoji: (v && v.emoji) || this.emojiOf(p),
-        image: p.image,
         ...this.chickenFields(p),
       });
     this.renderCart();
@@ -206,6 +234,8 @@ Object.assign(POSApp.prototype, {
     document.getElementById("cashReceived").value = "";
     document.getElementById("cashDisplay").textContent = "$0";
     document.getElementById("changeDisplayContainer").innerHTML = "";
+    this.state.mixtoEfectivo = 0;
+    this.state.mixtoTransferencia = 0;
     document.getElementById("mixtoEfectivo").value = "";
     document.getElementById("mixtoTransferencia").value = "";
     document.getElementById("mixtoTotalCubierto").textContent = "$0";

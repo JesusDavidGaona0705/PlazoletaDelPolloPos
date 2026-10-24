@@ -32,10 +32,38 @@ Object.assign(POSApp.prototype, {
 
   defaultCategories() {
     return [
-      { id: "pollo", name: "Pollos", emoji: "🍗", kind: "asado", color: "#ef4444", _o: 1 },
-      { id: "bebida", name: "Bebidas", emoji: "🥤", kind: "general", color: "#3b82f6", _o: 3 },
-      { id: "acompanante", name: "Adiciones", emoji: "🍟", kind: "general", color: "#10b981", _o: 4 },
-      { id: "otro", name: "Otros", emoji: "📦", kind: "general", color: "#64748b", _o: 5 },
+      {
+        id: "pollo",
+        name: "Pollos",
+        emoji: "🍗",
+        kind: "asado",
+        color: "#ef4444",
+        _o: 1,
+      },
+      {
+        id: "bebida",
+        name: "Bebidas",
+        emoji: "🥤",
+        kind: "general",
+        color: "#3b82f6",
+        _o: 3,
+      },
+      {
+        id: "acompanante",
+        name: "Adiciones",
+        emoji: "🍟",
+        kind: "general",
+        color: "#10b981",
+        _o: 4,
+      },
+      {
+        id: "otro",
+        name: "Otros",
+        emoji: "📦",
+        kind: "general",
+        color: "#64748b",
+        _o: 5,
+      },
     ];
   },
 
@@ -53,7 +81,8 @@ Object.assign(POSApp.prototype, {
   /* Lista de categorías en orden. Mientras nadie las edite se usan las básicas (no se guardan). */
   getCategories() {
     const stored = this.state.categories;
-    const list = stored && stored.length ? stored.slice() : this.defaultCategories();
+    const list =
+      stored && stored.length ? stored.slice() : this.defaultCategories();
     const known = new Set(list.map((c) => c.id));
     let n = 100;
     this.state.products.forEach((p) => {
@@ -73,7 +102,9 @@ Object.assign(POSApp.prototype, {
 
   getCategory(id) {
     const found = this.getCategories().find((c) => c.id === id);
-    return found || { id, name: id, emoji: "📦", kind: "general", color: "#64748b" };
+    return (
+      found || { id, name: id, emoji: "📦", kind: "general", color: "#64748b" }
+    );
   },
 
   categoryKind(id) {
@@ -139,7 +170,8 @@ Object.assign(POSApp.prototype, {
     if (item.chickenSource && item.chickenUnits > 0) {
       return { source: item.chickenSource, units: item.chickenUnits };
     }
-    if (item.chickenUnits > 0) return { source: "cooked", units: item.chickenUnits };
+    if (item.chickenUnits > 0)
+      return { source: "cooked", units: item.chickenUnits };
     return null;
   },
 
@@ -159,10 +191,15 @@ Object.assign(POSApp.prototype, {
       }
     });
     const ch = this.state.chickens;
-    ch.raw = Math.max(0, (ch.raw || 0) + dir * used.raw);
-    ch.cooked = Math.max(0, (ch.cooked || 0) + dir * used.cooked);
+    /* Sin recortar a 0: si se vendió sin pollos contados, queda en negativo (y al borrar la
+       factura vuelve exactamente al valor anterior). */
+    ch.raw = (ch.raw || 0) + dir * used.raw;
+    ch.cooked = (ch.cooked || 0) + dir * used.cooked;
     const total = used.raw + used.cooked;
-    this.state.totalChickensSold = Math.max(0, (this.state.totalChickensSold || 0) - dir * total);
+    this.state.totalChickensSold = Math.max(
+      0,
+      (this.state.totalChickensSold || 0) - dir * total,
+    );
     return used;
   },
 
@@ -180,10 +217,39 @@ Object.assign(POSApp.prototype, {
       emoji: "🍗",
     };
     return [
-      { ...base, id: "prod-b1", name: "Pollo broaster entero", price: 42000, chickenUnits: 1, favorite: true, _o: 31 },
-      { ...base, id: "prod-b2", name: "1/2 pollo broaster", price: 22000, chickenUnits: 0.5, _o: 32 },
-      { ...base, id: "prod-b3", name: "1/4 pollo broaster", price: 12000, chickenUnits: 0.25, _o: 33 },
-      { ...base, id: "prod-b4", name: "Porción de pollo broaster", price: 6500, chickenUnits: 0.125, _o: 34 },
+      {
+        ...base,
+        id: "prod-b1",
+        name: "Pollo broaster entero",
+        price: 42000,
+        chickenUnits: 1,
+        favorite: true,
+        _o: 31,
+      },
+      {
+        ...base,
+        id: "prod-b2",
+        name: "1/2 pollo broaster",
+        price: 22000,
+        chickenUnits: 0.5,
+        _o: 32,
+      },
+      {
+        ...base,
+        id: "prod-b3",
+        name: "1/4 pollo broaster",
+        price: 12000,
+        chickenUnits: 0.25,
+        _o: 33,
+      },
+      {
+        ...base,
+        id: "prod-b4",
+        name: "Porción de pollo broaster",
+        price: 6500,
+        chickenUnits: 0.125,
+        _o: 34,
+      },
     ];
   },
 
@@ -195,6 +261,17 @@ Object.assign(POSApp.prototype, {
     if (!S.migrations) S.migrations = {};
     if (!S.categories) S.categories = [];
 
+    /* Las ventas ya no guardan la foto del producto en cada renglón (llenaba el almacenamiento) */
+    const strip = (i) => {
+      if (i && i.image !== undefined) {
+        delete i.image;
+        changed = true;
+      }
+    };
+    [S.sales, S.pendingSales].forEach((list) =>
+      (list || []).forEach((s) => (s.items || []).forEach(strip)),
+    );
+    (S.cart || []).forEach(strip);
     S.products.forEach((p) => {
       if (this.isChickenProduct(p) && !p.chickenUnits) {
         p.chickenUnits = this.guessChickenUnits(p.name);
@@ -207,7 +284,8 @@ Object.assign(POSApp.prototype, {
       S.migrations.broaster = true;
     } else if (seed && !S.migrations.broaster) {
       this.materializeCategories();
-      if (!S.categories.some((c) => c.id === "broaster")) S.categories.push(this.broasterCategory());
+      if (!S.categories.some((c) => c.id === "broaster"))
+        S.categories.push(this.broasterCategory());
       this.broasterProducts().forEach((p) => S.products.push(p));
       S.migrations.broaster = true;
       this.logActivity("Se agregó el pollo a la broaster (revisa los precios)");
@@ -228,7 +306,12 @@ Object.assign(POSApp.prototype, {
     box.innerHTML =
       tab("all", "Todos") +
       this.getCategories()
-        .map((c) => tab(c.id, `${Utils.sanitizeInput(c.emoji)} ${Utils.sanitizeInput(c.name)}`))
+        .map((c) =>
+          tab(
+            c.id,
+            `${Utils.sanitizeInput(c.emoji)} ${Utils.sanitizeInput(c.name)}`,
+          ),
+        )
         .join("") +
       tab("inactive", "🚫 Inactivos");
   },
@@ -251,7 +334,10 @@ Object.assign(POSApp.prototype, {
         )
         .join("") + '<option value="__new">➕ Nueva categoría…</option>';
     const first = this.getCategories()[0].id;
-    sel.value = selected && this.getCategories().some((c) => c.id === selected) ? selected : first;
+    sel.value =
+      selected && this.getCategories().some((c) => c.id === selected)
+        ? selected
+        : first;
     this._lastProductCategory = sel.value;
   },
 
@@ -266,8 +352,12 @@ Object.assign(POSApp.prototype, {
     this._lastProductCategory = sel.value;
     const kind = this.categoryKind(sel.value);
     const isChicken = kind !== "general";
-    document.getElementById("productChickenGroup").style.display = isChicken ? "" : "none";
-    document.getElementById("productStockGroup").style.display = isChicken ? "none" : "";
+    document.getElementById("productChickenGroup").style.display = isChicken
+      ? ""
+      : "none";
+    document.getElementById("productStockGroup").style.display = isChicken
+      ? "none"
+      : "";
     document.getElementById("productChickenHint").textContent =
       kind === "broaster"
         ? "Cada venta resta esta cantidad de los pollos CRUDOS (se fríen al momento)."
@@ -287,10 +377,16 @@ Object.assign(POSApp.prototype, {
   },
 
   renderCategoriesList() {
-    const kindText = { general: "unidades", asado: "pollo asado", broaster: "pollo broaster" };
+    const kindText = {
+      general: "unidades",
+      asado: "pollo asado",
+      broaster: "pollo broaster",
+    };
     document.getElementById("categoriesList").innerHTML = this.getCategories()
       .map((c) => {
-        const count = this.state.products.filter((p) => p.category === c.id).length;
+        const count = this.state.products.filter(
+          (p) => p.category === c.id,
+        ).length;
         return `
         <div class="category-row">
           <span class="category-row-emoji">${Utils.sanitizeInput(c.emoji)}</span>
@@ -314,7 +410,8 @@ Object.assign(POSApp.prototype, {
     document.getElementById("categoryName").value = "";
     document.getElementById("categoryEmoji").value = "";
     document.getElementById("categoryKind").value = "general";
-    document.getElementById("categoryFormTitle").textContent = "➕ Nueva categoría";
+    document.getElementById("categoryFormTitle").textContent =
+      "➕ Nueva categoría";
     document.getElementById("categoryCancelBtn").style.display = "none";
   },
 
@@ -324,7 +421,8 @@ Object.assign(POSApp.prototype, {
     document.getElementById("categoryName").value = c.name;
     document.getElementById("categoryEmoji").value = c.emoji;
     document.getElementById("categoryKind").value = this.categoryKind(c.id);
-    document.getElementById("categoryFormTitle").textContent = "✏️ Editar categoría";
+    document.getElementById("categoryFormTitle").textContent =
+      "✏️ Editar categoría";
     document.getElementById("categoryCancelBtn").style.display = "";
     document.getElementById("categoryName").focus();
   },
@@ -369,9 +467,18 @@ Object.assign(POSApp.prototype, {
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "") || "cat";
       let id = slug;
-      for (let n = 2; this.state.categories.some((c) => c.id === id); n++) id = `${slug}-${n}`;
-      const color = CATEGORY_COLORS[this.state.categories.length % CATEGORY_COLORS.length];
-      this.state.categories.push({ id, name, emoji, kind, color, _o: Utils.now() });
+      for (let n = 2; this.state.categories.some((c) => c.id === id); n++)
+        id = `${slug}-${n}`;
+      const color =
+        CATEGORY_COLORS[this.state.categories.length % CATEGORY_COLORS.length];
+      this.state.categories.push({
+        id,
+        name,
+        emoji,
+        kind,
+        color,
+        _o: Utils.now(),
+      });
       this.logActivity(`Categoría creada: ${name}`);
       this._lastProductCategory = id;
     }
@@ -379,7 +486,9 @@ Object.assign(POSApp.prototype, {
     this.render();
     this.resetCategoryForm();
     this.renderCategoriesList();
-    if (document.getElementById("addProductModal").classList.contains("active")) {
+    if (
+      document.getElementById("addProductModal").classList.contains("active")
+    ) {
       this.fillCategorySelect(eid || this._lastProductCategory);
       this.onProductCategoryChange();
       if (!eid) this.hideModal("categoriesModal");

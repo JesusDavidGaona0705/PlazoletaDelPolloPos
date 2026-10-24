@@ -159,22 +159,26 @@ Object.assign(POSApp.prototype, {
   },
 
   toggleVariantsForm() {
-    document.getElementById("variantsFormSection").style.display = document.getElementById(
-      "productHasVariants",
-    ).checked
-      ? "block"
-      : "none";
+    document.getElementById("variantsFormSection").style.display =
+      document.getElementById("productHasVariants").checked ? "block" : "none";
   },
 
   addVariantToForm() {
     const n = document.getElementById("variantName").value.trim();
-    const p = Utils.parseFormattedNumber(document.getElementById("variantPrice").value);
+    const p = Utils.parseFormattedNumber(
+      document.getElementById("variantPrice").value,
+    );
     const e = document.getElementById("variantEmoji").value.trim() || "";
     if (!n) {
       Toast.error("Nombre");
       return;
     }
-    this.state.tempVariants.push({ id: Utils.generateId(), name: n, price: p, emoji: e });
+    this.state.tempVariants.push({
+      id: Utils.generateId(),
+      name: n,
+      price: p,
+      emoji: e,
+    });
     document.getElementById("variantName").value = "";
     document.getElementById("variantPrice").value = "";
     document.getElementById("variantEmoji").value = "";
@@ -183,7 +187,9 @@ Object.assign(POSApp.prototype, {
   },
 
   removeVariantFromForm(id) {
-    this.state.tempVariants = this.state.tempVariants.filter((v) => v.id !== id);
+    this.state.tempVariants = this.state.tempVariants.filter(
+      (v) => v.id !== id,
+    );
     this.renderVariantsPreview();
   },
 
@@ -215,13 +221,19 @@ Object.assign(POSApp.prototype, {
     const eid = document.getElementById("editProductId").value;
     const n = document.getElementById("productName").value.trim();
     const cat = document.getElementById("productCategory").value;
-    const p = Utils.parseFormattedNumber(document.getElementById("productPrice").value);
+    const p = Utils.parseFormattedNumber(
+      document.getElementById("productPrice").value,
+    );
     const em = document.getElementById("productEmoji").value.trim() || "📦";
     const fav = document.getElementById("productFavorite").checked;
     const act = document.getElementById("productActive").checked;
     const hv = document.getElementById("productHasVariants").checked;
     const isChicken = this.categoryKind(cat) !== "general";
-    const s = isChicken ? 0 : Utils.parseFormattedNumber(document.getElementById("productStock").value);
+    const s = isChicken
+      ? 0
+      : Utils.parseFormattedNumber(
+          document.getElementById("productStock").value,
+        );
     if (!n) {
       Toast.error("Nombre");
       return;
@@ -243,7 +255,9 @@ Object.assign(POSApp.prototype, {
       active: act,
       variants: hv ? [...this.state.tempVariants] : [],
     };
-    if (isChicken) pd.chickenUnits = Number(document.getElementById("productChickenUnits").value) || 1;
+    if (isChicken)
+      pd.chickenUnits =
+        Number(document.getElementById("productChickenUnits").value) || 1;
     if (eid) {
       const idx = this.state.products.findIndex((x) => x.id === eid);
       if (idx !== -1) {
@@ -282,7 +296,9 @@ Object.assign(POSApp.prototype, {
     document.getElementById("productActive").checked = p.active !== false;
     document.getElementById("productHasVariants").checked = p.hasVariants;
     const info = this.getChickenInfo(p);
-    document.getElementById("productChickenUnits").value = String(info ? info.units : 1);
+    document.getElementById("productChickenUnits").value = String(
+      info ? info.units : 1,
+    );
     this.onProductCategoryChange();
     const pr = document.getElementById("imagePreview");
     if (p.image) {
@@ -323,7 +339,9 @@ Object.assign(POSApp.prototype, {
     document.getElementById("editProductId").value = "";
     document.getElementById("productName").value = "";
     const cur = this.state.selectedManageCategory;
-    this.fillCategorySelect(this.getCategories().some((c) => c.id === cur) ? cur : null);
+    this.fillCategorySelect(
+      this.getCategories().some((c) => c.id === cur) ? cur : null,
+    );
     document.getElementById("productPrice").value = "";
     document.getElementById("productStock").value = "";
     document.getElementById("productChickenUnits").value = "1";
@@ -343,7 +361,9 @@ Object.assign(POSApp.prototype, {
 
   addStockEntry() {
     const pid = document.getElementById("entryProduct").value;
-    const q = Utils.parseFormattedNumber(document.getElementById("entryQuantity").value);
+    const q = Utils.parseFormattedNumber(
+      document.getElementById("entryQuantity").value,
+    );
     const sup = document.getElementById("entrySupplier").value.trim();
     if (!pid) {
       Toast.error("Producto");
@@ -384,7 +404,11 @@ Object.assign(POSApp.prototype, {
   },
 
   emojiOf(p) {
-    return p.emoji || { pollo: "🍗", bebida: "🥤", acompanante: "🍟" }[p.category] || "📦";
+    return (
+      p.emoji ||
+      { pollo: "🍗", bebida: "🥤", acompanante: "🍟" }[p.category] ||
+      "📦"
+    );
   },
 
   renderProductsManage() {
@@ -410,7 +434,9 @@ Object.assign(POSApp.prototype, {
         const portion = info
           ? ` • ${Utils.formatChickens(info.units)} pollo (${SOURCE_LABEL[info.source]})`
           : "";
-        const variants = p.hasVariants ? ` • ${Utils.formatNumber(p.variants.length)} var.` : "";
+        const variants = p.hasVariants
+          ? ` • ${Utils.formatNumber(p.variants.length)} var.`
+          : "";
         const inactive =
           p.active === false
             ? '<span style="color:var(--danger);font-size:.65rem">(Inactivo)</span>'
@@ -446,7 +472,9 @@ Object.assign(POSApp.prototype, {
 
   renderInventory() {
     const c = document.getElementById("inventoryGrid");
-    const ip = this.state.products.filter((p) => !this.isChickenProduct(p) && p.active !== false);
+    const ip = this.state.products.filter(
+      (p) => !this.isChickenProduct(p) && p.active !== false,
+    );
     if (ip.length === 0) {
       c.innerHTML = `<div
             class="empty-state"

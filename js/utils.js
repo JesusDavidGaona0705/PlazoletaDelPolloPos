@@ -44,9 +44,13 @@ const Utils = {
     return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   },
   downloadCSV(name, rows) {
-    const csv = "\ufeff" + rows.map((r) => r.map((c) => Utils.csvCell(c)).join(";")).join("\r\n");
+    const csv =
+      "\ufeff" +
+      rows.map((r) => r.map((c) => Utils.csvCell(c)).join(";")).join("\r\n");
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.href = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+    );
     a.download = name;
     document.body.appendChild(a);
     a.click();
@@ -78,7 +82,15 @@ const Utils = {
       .trim()
       .replace(/\s+/g, " ");
     if (!s) return 0;
-    const uni = { "⅛": " 1/8", "¼": " 1/4", "⅜": " 3/8", "½": " 1/2", "⅝": " 5/8", "¾": " 3/4", "⅞": " 7/8" };
+    const uni = {
+      "⅛": " 1/8",
+      "¼": " 1/4",
+      "⅜": " 3/8",
+      "½": " 1/2",
+      "⅝": " 5/8",
+      "¾": " 3/4",
+      "⅞": " 7/8",
+    };
     s = s.replace(/[⅛¼⅜½⅝¾⅞]/g, (c) => uni[c]).trim();
     let m = s.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
     if (m) return +m[1] + +m[2] / (+m[3] || 1);
@@ -99,7 +111,7 @@ const Utils = {
     if (!input) return "";
     const d = document.createElement("div");
     d.textContent = String(input);
-    return d.innerHTML;
+    return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   },
   validateNumber(value, min = 0) {
     const n = parseFloat(String(value).replace(/\./g, ""));

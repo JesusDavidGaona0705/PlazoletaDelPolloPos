@@ -1,4 +1,4 @@
-LA PLAZOLETA DEL POLLO - POS  (versión 2.2.0)
+LA PLAZOLETA DEL POLLO - POS  (versión 2.2.1)
 =============================================
 
 CONTENIDO DE ESTA CARPETA
@@ -103,3 +103,16 @@ NOVEDADES 2.2.0 (factura, cobro y clientes)
   - Vuelve a pegar firebase-reglas-2-con-cuentas.json si usas cuentas (nueva sección «settings»).
   - Los números de factura se asignan en cada dispositivo (último número + 1). Si dos cajas
     cobran exactamente al mismo tiempo sin haber sincronizado, podrían repetir un número.
+
+CAMBIOS 2.2.1
+  - Error «PERMISSION_DENIED» en la nube: la 2.2.0 agregó la sección «settings» (ajustes de
+    factura) y tus reglas publicadas no la incluían; eso detenía TODA la sincronización.
+    Ahora, si a las reglas les falta una sección, lo demás sigue sincronizando y la ventana ☁️
+    dice qué falta. Solución definitiva: pega firebase-reglas-2-con-cuentas.json en Firebase.
+  - Factura: alto de página exacto (sin espacio de más), logo más pequeño y más margen lateral.
+    En el diálogo de impresión elige Márgenes: «Ninguno» y desactiva «Encabezados y pies de página».
+  - Vender: botones arriba para saltar a cada categoría.
+  - Cerrar el día deja el fondo de caja en $0 (el valor anterior queda en el archivo del día).
+  - El número de factura ya no se reinicia al cerrar el día (contador sincronizado).
+  - El dispositivo guarda solo los últimos 60 cierres del día (en la nube quedan todos) para que
+    el almacenamiento del navegador no se llene.

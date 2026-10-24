@@ -31,6 +31,7 @@ class POSApp {
       editSaleTempItems: [],
       editSaleIsPending: false,
       totalChickensSold: 0,
+      invoiceSeq: 0,
       dailyGoal: 30,
       categories: [],
       settings: [],
@@ -247,7 +248,7 @@ class POSApp {
     );
     document.querySelectorAll(".modal-overlay").forEach((o) =>
       o.addEventListener("click", (e) => {
-        if (e.target === o) o.classList.remove("active");
+        if (e.target === o) this.hideModal(o.id);
       }),
     );
     document
@@ -288,11 +289,6 @@ class POSApp {
         .addEventListener("input", () => this.updateChickenTotalPreview());
     });
     document.addEventListener("keydown", (e) => {
-      if (e.ctrlKey && e.key === "k") {
-        e.preventDefault();
-        if (this.state.currentSection === "sell")
-          document.getElementById("productSearch")?.focus();
-      }
       if (e.key === "F2" && this.state.currentSection === "sell") {
         e.preventDefault();
         this.showCheckout();

@@ -18,6 +18,7 @@ const Cloud = (() => {
     raw: ["chickens", "raw"],
     cooked: ["chickens", "cooked"],
     sold: ["totalChickensSold"],
+    inv: ["invoiceSeq"],
   };
   const NODES = COLS.concat(["stock", "cfg", "cnt", "meta"]);
   /* Qué puede escribir cada rol (se usa para generar las reglas de Firebase) */
@@ -325,6 +326,44 @@ const Cloud = (() => {
     clearTimeout(shT);
     shT = setTimeout(writeShadow, 400);
   }
+  const readDenied = new Set();
+  const NODE_LABEL = {
+    categories: "categorías",
+    settings: "ajustes de factura",
+    products: "productos",
+    sales: "ventas",
+    pendingSales: "pendientes",
+    clients: "clientes",
+  };
+  let permNote = "";
+  function noteDenied() {
+    const list = Array.from(readDenied).map((n) => NODE_LABEL[n] || n);
+    permNote =
+      "Las reglas de Firebase no permiten: " +
+      list.join(", ") +
+      ". Lo demás sí se sincroniza. Pega las reglas nuevas (☁️ → Opciones avanzadas → Reglas).";
+    if (modalOpen()) renderModal();
+    clearTimeout(noteDenied.t);
+    noteDenied.t = setTimeout(() => {
+      Toast.warning("☁️ Faltan permisos en Firebase para: " + list.join(", "));
+    }, 300);
+  }
+  /* Datos que llegan de la nube: ids seguros y valores conocidos (evita inyectar código) */
+  const SAFE_ID = /^[\w.-]{1,64}$/;
+  function clean(c, e) {
+    if (!e || typeof e !== "object") return null;
+    if (e.id != null && !SAFE_ID.test(String(e.id))) return null;
+    if (c === "sales" || c === "pendingSales") {
+      if (!["pagado", "pendiente"].includes(e.status))
+        e.status = c === "sales" ? "pagado" : "pendiente";
+      if (!["efectivo", "transferencia", "mixto"].includes(e.paymentMethod))
+        e.paymentMethod = "efectivo";
+      if (e.clientId != null && !SAFE_ID.test(String(e.clientId)))
+        e.clientId = null;
+      (e.items || []).forEach((i) => delete i.image);
+    }
+    return e;
+  }
   const isDenied = (e) =>
     !!(
       e &&
@@ -388,7 +427,7 @@ const Cloud = (() => {
       })
       .then(() => {
         inflight.delete(undo);
-        persistShadow();
+        writeShadow(); /* guardar ya: si la app se cierra, no se vuelve a aplicar el cambio */
         pendingWrites--;
         if (modalOpen()) renderModal();
       });
@@ -405,7 +444,7 @@ const Cloud = (() => {
     const S = app.state;
     let changed = false,
       newSales = 0;
-    const want = (n) => !only || only.has(n);
+    const want = (n) => !readDenied.has(n) && (!only || only.has(n));
     COLS.forEach((c) => {
       if (!want(c)) return;
       const rm = R[c] || {};
@@ -413,7 +452,8 @@ const Cloud = (() => {
         const out = [];
         for (const k in rm) {
           try {
-            out.push(JSON.parse(rm[k]));
+            const ce = clean(c, JSON.parse(rm[k]));
+            if (ce) out.push(ce);
             shadow[c + "/" + k] = hash(rm[k]);
           } catch (e) {}
         }
@@ -421,6 +461,20 @@ const Cloud = (() => {
           if (p.indexOf(c + "/") === 0 && !(p.slice(c.length + 1) in rm))
             delete shadow[p];
         });
+        if (c === "products") {
+          /* El stock viaja aparte (nodo «stock»): conservar el local para no ponerlo en 0 */
+          const prev = new Map((S.products || []).map((p) => [p.id, p.stock]));
+          const rs0 = R.stock || {};
+          out.forEach((p) => {
+            const r = rs0[key(p.id)];
+            p.stock =
+              r !== undefined
+                ? +r
+                : prev.has(p.id)
+                  ? prev.get(p.id)
+                  : p.stock || 0;
+          });
+        }
         S[c] = sortCol(c, out);
         changed = true;
         return;
@@ -436,10 +490,11 @@ const Cloud = (() => {
         if (sR === sS) continue;
         let e;
         try {
-          e = JSON.parse(str);
+          e = clean(c, JSON.parse(str));
         } catch (x) {
           continue;
         }
+        if (!e) continue;
         const loc = byKey.get(k);
         if (!loc) {
           list.push(e);
@@ -743,7 +798,15 @@ const Cloud = (() => {
           got[n] = 1;
           queuePull();
         },
-        failListen,
+        (e) => {
+          /* Un nodo sin permiso (reglas viejas) no debe detener toda la sincronización */
+          if (!isDenied(e)) return failListen(e);
+          readDenied.add(n);
+          denied.add(n);
+          got[n] = 1;
+          noteDenied();
+          queuePull();
+        },
       ),
     );
     ref.child("presence").on(
@@ -1312,6 +1375,11 @@ const Cloud = (() => {
       LABEL[status] +
       "</b></div>" +
       (statusMsg ? '<p class="sync-note">' + esc(statusMsg) + "</p>" : "") +
+      (permNote
+        ? '<p class="sync-note" style="color:var(--warning,#f59e0b)">⚠️ ' +
+          esc(permNote) +
+          "</p>"
+        : "") +
       (/operation-not-allowed|admin-restricted|configuration-not-found/.test(
         authNote,
       )
@@ -1549,7 +1617,8 @@ const Cloud = (() => {
     app.showModal("passwordModal");
   }
   function retry() {
-    if (!ref) {
+    if (!ref || readDenied.size) {
+      if (app) app.persistLocal();
       location.reload();
       return;
     }
