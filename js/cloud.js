@@ -11,6 +11,7 @@ const Cloud = (() => {
     "arqueos",
     "activityLog",
     "categories",
+    "settings",
   ];
   const CFG_KEYS = ["dailyGoal", "cashFund"];
   const CNT = {
@@ -40,6 +41,7 @@ const Cloud = (() => {
     "meta",
     "archives",
     "categories",
+    "settings",
   ];
   const LABEL = {
     local: "Modo local",

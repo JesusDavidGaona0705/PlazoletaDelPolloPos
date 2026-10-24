@@ -1,33 +1,95 @@
 /* Clientes. */
 
 Object.assign(POSApp.prototype, {
-  saveClient() {
-    const n = document.getElementById("clientName").value.trim();
-    const ph = document.getElementById("clientPhone").value.trim();
-    const nt = document.getElementById("clientNotes").value.trim();
-    if (!n) {
-      Toast.error("Nombre");
+  openClientModal(id) {
+    const c = id ? this.state.clients.find((x) => x.id === id) : null;
+    if (id && this.currentRole !== "admin") {
+      Toast.error("Solo el administrador puede editar clientes");
       return;
     }
-    this.state.clients.push({
-      id: Utils.generateId(),
-      name: n,
-      phone: ph,
-      notes: nt,
-      createdAt: Utils.now(),
-    });
-    document.getElementById("clientName").value = "";
-    document.getElementById("clientPhone").value = "";
-    document.getElementById("clientNotes").value = "";
+    this._clientFromCheckout = false;
+    this._editClientId = c ? c.id : null;
+    document.getElementById("clientName").value = c ? c.name : "";
+    document.getElementById("clientPhone").value = c ? c.phone || "" : "";
+    document.getElementById("clientNotes").value = c ? c.notes || "" : "";
+    this.showModal("addClientModal");
+    setTimeout(() => document.getElementById("clientName").focus(), 80);
+  },
+
+  closeClientModal() {
+    this._clientFromCheckout = false;
+    this._editClientId = null;
     this.hideModal("addClientModal");
+  },
+
+  saveClient() {
+    const n = document
+      .getElementById("clientName")
+      .value.trim()
+      .replace(/\s+/g, " ");
+    const ph = document.getElementById("clientPhone").value.trim();
+    const nt = document.getElementById("clientNotes").value.trim();
+    const digits = ph.replace(/\D/g, "").replace(/^57(?=\d{10}$)/, "");
+    if (n.length < 2) {
+      Toast.error("Escribe el nombre del cliente");
+      return;
+    }
+    if (digits.length !== 10) {
+      Toast.error("El teléfono debe tener 10 dígitos (ej. 320 988 4346)");
+      return;
+    }
+    const editing = this._editClientId
+      ? this.state.clients.find((c) => c.id === this._editClientId)
+      : null;
+    const dup = this.state.clients.find(
+      (c) =>
+        c !== editing &&
+        String(c.phone || "")
+          .replace(/\D/g, "")
+          .replace(/^57(?=\d{10}$)/, "") === digits,
+    );
+    if (dup) {
+      Toast.error(`Ese teléfono ya está registrado (${dup.name})`);
+      return;
+    }
+    const phone = `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+    let cid;
+    if (editing) {
+      Object.assign(editing, { name: n, phone, notes: nt });
+      cid = editing.id;
+    } else {
+      cid = Utils.generateId();
+      this.state.clients.push({
+        id: cid,
+        name: n,
+        phone,
+        notes: nt,
+        createdBy: this.currentUserLabel(),
+        createdAt: Utils.now(),
+      });
+    }
+    const fromCheckout = this._clientFromCheckout;
+    this.closeClientModal();
     this.saveState();
     this.render();
-    this.logActivity(`Cliente: ${n}`);
-    Toast.success("Cliente agregado");
+    if (fromCheckout) {
+      this.fillCheckoutClients(cid);
+      this.updateCheckoutRules();
+    }
+    this.logActivity(`${editing ? "Cliente editado" : "Cliente"}: ${n}`);
+    Toast.success(editing ? "Cliente actualizado" : "Cliente agregado");
   },
 
   deleteClient(id) {
-    if (!confirm("¿Eliminar?")) return;
+    if (this.currentRole !== "admin") {
+      Toast.error("Solo el administrador puede eliminar clientes");
+      return;
+    }
+    const owes = (this.state.pendingSales || []).some((s) => s.clientId === id);
+    const msg = owes
+      ? "Este cliente tiene ventas pendientes (debe plata). Si lo eliminas, las ventas seguirán en la lista con su nombre. ¿Eliminar de todos modos?"
+      : "¿Eliminar este cliente?";
+    if (!confirm(msg)) return;
     this.state.clients = this.state.clients.filter((c) => c.id !== id);
     this.saveState();
     this.render();
@@ -97,11 +159,14 @@ Object.assign(POSApp.prototype, {
   },
 
   renderClients() {
-    const search = (document.getElementById("clientSearch")?.value || "").toLowerCase();
+    const search = (
+      document.getElementById("clientSearch")?.value || ""
+    ).toLowerCase();
     let clients = this.state.clients || [];
     if (search)
       clients = clients.filter(
-        (c) => c.name.toLowerCase().includes(search) || c.phone?.includes(search),
+        (c) =>
+          c.name.toLowerCase().includes(search) || c.phone?.includes(search),
       );
     const c = document.getElementById("clientsList");
     if (clients.length === 0) {
@@ -116,8 +181,11 @@ Object.assign(POSApp.prototype, {
         return `<div class="sale-item" style="cursor:pointer" onclick="app.showClientDetail('${cl.id}')"><div class="sale-info"><div class="sale-id">${Utils.sanitizeInput(cl.name)}</div><div class="sale-details">${Utils.sanitizeInput(cl.phone || "Sin tel")} • ${Utils.formatNumber(purchases.length)} compras • ${Utils.formatCurrency(totalSpent)}</div>
           </div>
           <div style="display:flex;gap:.2rem">
-          <button class="icon-btn danger"
-          onclick="event.stopPropagation();app.deleteClient('${cl.id}')" title="Eliminar"><i class="fas fa-trash"></i></button></div></div>`;
+          ${
+            this.currentRole === "admin"
+              ? `<button class="icon-btn" onclick="event.stopPropagation();app.openClientModal('${cl.id}')" title="Editar"><i class="fas fa-edit"></i></button><button class="icon-btn danger" onclick="event.stopPropagation();app.deleteClient('${cl.id}')" title="Eliminar"><i class="fas fa-trash"></i></button>`
+              : ""
+          }</div></div>`;
       })
       .join("");
     const os = document.getElementById("orderClient");
@@ -125,7 +193,10 @@ Object.assign(POSApp.prototype, {
       os.innerHTML =
         '<option value="">General</option>' +
         this.state.clients
-          .map((cl) => `<option value="${cl.id}">${Utils.sanitizeInput(cl.name)}</option>`)
+          .map(
+            (cl) =>
+              `<option value="${cl.id}">${Utils.sanitizeInput(cl.name)}</option>`,
+          )
           .join("");
   },
 });

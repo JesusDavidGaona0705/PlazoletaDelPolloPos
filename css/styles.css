@@ -2121,3 +2121,128 @@ body[data-section="sell"] .cart-bar.has-items {
   font-size: 0.72rem;
   color: var(--tx2);
 }
+
+/* ---------- cobro compacto (sin barra de desplazamiento) ---------- */
+#checkoutModal {
+  overflow-y: auto;
+}
+#checkoutModal.active {
+  align-items: safe center;
+}
+.checkout-modal {
+  max-width: 760px;
+  max-height: none !important;
+  overflow: visible;
+  padding: 0.85rem 1rem;
+}
+.checkout-modal .modal-header {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+}
+.checkout-modal .form-group {
+  margin-bottom: 0.45rem;
+}
+.checkout-modal .form-label {
+  margin-bottom: 0.2rem;
+  font-size: 0.72rem;
+}
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 1rem;
+}
+.checkout-total {
+  background: var(--bg3);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--rs);
+  margin-bottom: 0.45rem;
+  text-align: center;
+}
+.checkout-modal .payment-method {
+  padding: 0.4rem 0.3rem;
+  font-size: 0.75rem;
+}
+.checkout-modal .payment-method i {
+  font-size: 1rem;
+  margin-bottom: 0.1rem;
+}
+.checkout-modal .quick-cash-btns {
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+}
+.checkout-modal .quick-cash-btn {
+  padding: 0.3rem 0.5rem;
+  min-height: 34px;
+  font-size: 0.72rem;
+}
+.checkout-modal .change-display {
+  padding: 0.4rem;
+  margin: 0.25rem 0;
+}
+.checkout-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg2);
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+}
+.client-row {
+  display: flex;
+  gap: 0.4rem;
+}
+.client-row .form-select {
+  flex: 1;
+  min-height: 40px;
+}
+.client-row .btn {
+  white-space: nowrap;
+}
+.client-hint {
+  color: var(--danger);
+  font-size: 0.72rem;
+  margin-top: 0.25rem;
+}
+.client-row.invalid .form-select {
+  border-color: var(--danger);
+}
+.mixto-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+.mixto-covered {
+  background: var(--bg3);
+  padding: 0.3rem;
+  border-radius: var(--rs);
+  font-size: 0.75rem;
+  text-align: center;
+  margin-bottom: 0.45rem;
+}
+@media (min-width: 640px) {
+  .checkout-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-height: 640px) and (max-width: 639px) {
+  .checkout-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* ---------- aviso de impresión y vista previa de la factura ---------- */
+.done-actions {
+  display: grid;
+  gap: 0.5rem;
+}
+.receipt-preview-modal {
+  max-width: 420px;
+}
+.receipt-frame {
+  width: 100%;
+  height: min(62vh, 560px);
+  border: 1px solid var(--bd);
+  border-radius: var(--rs);
+  background: #e9e2d3;
+}

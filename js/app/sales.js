@@ -3,7 +3,8 @@
 Object.assign(POSApp.prototype, {
   saleCash(s) {
     if (s.paymentMethod === "efectivo") return s.total;
-    if (s.paymentMethod === "mixto") return Math.max(0, s.total - (s.mixtoTransferencia || 0));
+    if (s.paymentMethod === "mixto")
+      return Math.max(0, s.total - (s.mixtoTransferencia || 0));
     return 0;
   },
 
@@ -34,7 +35,8 @@ Object.assign(POSApp.prototype, {
     this.state.passwordCallback = () => this.openEditSaleModal(sid, isPending);
     document.getElementById("adminPassword").value = "";
     document.getElementById("passwordError").style.display = "none";
-    document.getElementById("passwordModalDesc").textContent = "Contraseña admin";
+    document.getElementById("passwordModalDesc").textContent =
+      "Contraseña admin";
     this.showModal("passwordModal");
   },
 
@@ -48,7 +50,10 @@ Object.assign(POSApp.prototype, {
     cs.innerHTML =
       '<option value="">General</option>' +
       this.state.clients
-        .map((c) => `<option value="${c.id}">${Utils.sanitizeInput(c.name)}</option>`)
+        .map(
+          (c) =>
+            `<option value="${c.id}">${Utils.sanitizeInput(c.name)}</option>`,
+        )
         .join("");
     cs.value = s.clientId || "";
     document.getElementById("editSalePaymentMethod").value = s.paymentMethod;
@@ -65,7 +70,8 @@ Object.assign(POSApp.prototype, {
   renderEditSaleProducts() {
     const c = document.getElementById("editSaleProductsList");
     if (this.state.editSaleTempItems.length === 0) {
-      c.innerHTML = '<p style="font-size:.8rem;color:var(--tx2)">Sin productos</p>';
+      c.innerHTML =
+        '<p style="font-size:.8rem;color:var(--tx2)">Sin productos</p>';
       return;
     }
     c.innerHTML = this.state.editSaleTempItems
@@ -192,15 +198,16 @@ Object.assign(POSApp.prototype, {
   getEditSaleTotal() {
     return Math.max(
       0,
-      this.state.editSaleTempItems.reduce((s, i) => s + i.price * i.quantity, 0) -
-        (this.state.editSaleDiscount || 0),
+      this.state.editSaleTempItems.reduce(
+        (s, i) => s + i.price * i.quantity,
+        0,
+      ) - (this.state.editSaleDiscount || 0),
     );
   },
 
   updateEditSaleTotal() {
-    document.getElementById("editSaleTotalDisplay").textContent = Utils.formatCurrency(
-      this.getEditSaleTotal(),
-    );
+    document.getElementById("editSaleTotalDisplay").textContent =
+      Utils.formatCurrency(this.getEditSaleTotal());
   },
 
   saveEditedSale() {
@@ -215,7 +222,8 @@ Object.assign(POSApp.prototype, {
     const total = this.getEditSaleTotal();
     const upd = (s) => {
       s.clientId = cid;
-      s.customer = this.state.clients.find((c) => c.id === cid)?.name || "Cliente";
+      s.customer =
+        this.state.clients.find((c) => c.id === cid)?.name || "Cliente";
       this.applySaleInventory(s.items, 1);
       s.items = [...this.state.editSaleTempItems];
       this.applySaleInventory(s.items, -1);
@@ -230,7 +238,9 @@ Object.assign(POSApp.prototype, {
         if (st === "pagado") {
           s.timestamp = Utils.now();
           this.state.sales.push(s);
-          this.state.pendingSales = this.state.pendingSales.filter((x) => x.id !== sid);
+          this.state.pendingSales = this.state.pendingSales.filter(
+            (x) => x.id !== sid,
+          );
         }
       }
     } else {
@@ -329,33 +339,6 @@ Object.assign(POSApp.prototype, {
           style="text-align:center;margin-top:.4rem">
       <span class="status-badge status-${s.status === "pagado" ? "paid" : "pending"}">${s.status === "pagado" ? "✅ Pagado" : "⏳ Pendiente"}</span></div>`;
     this.showModal("saleDetailModal");
-  },
-
-  printTicket() {
-    if (!this.currentSaleDetail) return;
-    const s = this.currentSaleDetail;
-    const w = window.open("", "_blank", "width=400,height=600");
-    if (!w) {
-      Toast.error("Permite las ventanas emergentes para imprimir");
-      return;
-    }
-    w.document.write(
-      `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta
-          name="viewport"
-          content="width=device-width,initial-scale=1"><title>Ticket</title><style>body{font-family:monospace;font-size:12px;max-width:300px;margin:0 auto;padding:10px}.h{text-align:center;border-bottom:1px dashed #000;padding-bottom:8px;margin-bottom:8px}.it{display:flex;justify-content:space-between;margin-bottom:4px}.t{font-weight:bold;font-size:14px;text-align:right;border-top:1px dashed #000;padding-top:8px;margin-top:8px}</style></head><body><div class="h">
-        <strong>🍗 LA PLAZOLETA</strong><br>${new Date().toLocaleString("es-CO")}</div><div>Cliente: ${Utils.sanitizeInput(s.customer)}</div>
-        <div
-            class="it"
-            style="border-bottom:1px dashed #000;padding-bottom:8px;margin:8px 0">${s.items.map((i) => `<div class="it"><span>${Utils.sanitizeInput(i.name)} x${i.quantity}</span><span>${Utils.formatCurrency(i.price * i.quantity)}</span></div>`).join("")}</div>${s.discount ? `<div class="it"><span>Descuento</span><span>-${Utils.formatCurrency(s.discount)}</span></div>` : ""}<div class="t">TOTAL: ${Utils.formatCurrency(s.total)}</div><div style="margin-top:8px;text-align:center">¡Gracias! 🍗</div></body></html>`,
-    );
-    w.document.close();
-    setTimeout(() => {
-      try {
-        w.focus();
-        w.print();
-      } catch (e) {}
-    }, 300);
-    this.logActivity("Ticket impreso");
   },
 
   showAllSales() {
@@ -487,10 +470,12 @@ Object.assign(POSApp.prototype, {
       Toast.error("Solo el administrador puede eliminar facturas");
       return;
     }
-    this.state.passwordCallback = () => this.openDeleteSaleModal(sid, !!isPending);
+    this.state.passwordCallback = () =>
+      this.openDeleteSaleModal(sid, !!isPending);
     document.getElementById("adminPassword").value = "";
     document.getElementById("passwordError").style.display = "none";
-    document.getElementById("passwordModalDesc").textContent = "Contraseña de administrador";
+    document.getElementById("passwordModalDesc").textContent =
+      "Contraseña de administrador";
     this.showModal("passwordModal");
   },
 
@@ -500,7 +485,10 @@ Object.assign(POSApp.prototype, {
     if (!s) return;
     this._deleteTarget = { id: sid, isPending };
     const items = s.items
-      .map((i) => `${Utils.sanitizeInput(i.name)} × ${Utils.formatNumber(i.quantity)}`)
+      .map(
+        (i) =>
+          `${Utils.sanitizeInput(i.name)} × ${Utils.formatNumber(i.quantity)}`,
+      )
       .join("<br>");
     document.getElementById("deleteSaleSummary").innerHTML = `
       <div><strong>${Utils.sanitizeInput(s.customer)}</strong>
@@ -530,10 +518,13 @@ Object.assign(POSApp.prototype, {
     this.currentSaleDetail = null;
     this.hideModal("deleteSaleModal");
     const how = restore ? "inventario devuelto" : "inventario sin devolver";
-    this.logActivity(`Factura eliminada: ${s.customer} ${Utils.formatCurrency(s.total)} (${how})`);
+    this.logActivity(
+      `Factura eliminada: ${s.customer} ${Utils.formatCurrency(s.total)} (${how})`,
+    );
     this.saveState();
     this.render();
-    if (document.getElementById("allSalesModal").classList.contains("active")) this.showAllSales();
+    if (document.getElementById("allSalesModal").classList.contains("active"))
+      this.showAllSales();
     Toast.success("Factura eliminada");
   },
 });

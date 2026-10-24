@@ -1,4 +1,4 @@
-LA PLAZOLETA DEL POLLO - POS  (versión 2.1.1)
+LA PLAZOLETA DEL POLLO - POS  (versión 2.2.0)
 =============================================
 
 CONTENIDO DE ESTA CARPETA
@@ -85,3 +85,21 @@ CAMBIOS 2.1.1 (cuentas y sincronización)
     Sin esas reglas las solicitudes de acceso no se guardan.
   - Firebase no permite borrar cuentas desde la app: «Quitar» retira el acceso, pero el correo
     sigue existiendo en Authentication (puedes borrarlo ahí si quieres).
+
+NOVEDADES 2.2.0 (factura, cobro y clientes)
+  - Factura nueva con el logo, pensada para la térmica de 80 mm (blanco y negro): consecutivo,
+    productos con puntos guía, total en franja negra, sello PAGADO/PENDIENTE, QR a WhatsApp,
+    dirección y teléfono. La vista previa en pantalla usa los colores de la marca.
+  - Al cobrar aparece «¿Imprimir la factura?» (Imprimir / Vista previa / WhatsApp / No imprimir).
+    El administrador cambia esto en Inicio -> «Ajustes de factura» (preguntar, imprimir siempre
+    o no imprimir; también nombre, dirección, teléfono, WhatsApp del QR, NIT y tamaño de papel).
+    Esos ajustes se sincronizan con todos los dispositivos.
+  - Para imprimir sin ventana de diálogo en el computador de la caja: abre Chrome con el
+    parámetro  --kiosk-printing  y deja la Digital POS 80C como impresora predeterminada.
+  - La ventana de cobro ya no necesita barra de desplazamiento.
+  - Venta pendiente (fiado): obliga a elegir o registrar al cliente. Clientes: nombre y teléfono
+    (10 dígitos) obligatorios, sin teléfonos repetidos. Empleados y administradores pueden crear
+    clientes desde el cobro; solo el administrador los edita o elimina.
+  - Vuelve a pegar firebase-reglas-2-con-cuentas.json si usas cuentas (nueva sección «settings»).
+  - Los números de factura se asignan en cada dispositivo (último número + 1). Si dos cajas
+    cobran exactamente al mismo tiempo sin haber sincronizado, podrían repetir un número.

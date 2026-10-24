@@ -2,7 +2,7 @@
    - Archivos propios y librerías: se guardan al primer uso.
    - Página principal: busca la versión nueva en la red y, si no hay internet, usa la guardada.
    - No toca las conexiones a Firebase (base de datos y cuentas). */
-const VERSION='pollo-pos-2.1.1';
+const VERSION='pollo-pos-2.2.0';
 const PRECACHE = [
   './',
   'index.html',
@@ -17,6 +17,8 @@ const PRECACHE = [
   'js/security.js',
   'js/utils.js',
   'js/pwa.js',
+  'js/receipt-assets.js',
+  'vendor/qr/qrcode.js',
   'js/cloud.js',
   'js/app/core.js',
   'js/app/categories.js',
@@ -27,6 +29,7 @@ const PRECACHE = [
   'js/app/chickens.js',
   'js/app/cash.js',
   'js/app/clients.js',
+  'js/app/receipt.js',
   'js/app/reports.js',
   'js/main.js',
   'vendor/fa/css/all.min.css',

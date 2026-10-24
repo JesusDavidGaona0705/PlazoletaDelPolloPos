@@ -33,6 +33,7 @@ class POSApp {
       totalChickensSold: 0,
       dailyGoal: 30,
       categories: [],
+      settings: [],
       migrations: {},
       selectedUsageSource: "cooked",
       discountType: "none",
@@ -59,6 +60,7 @@ class POSApp {
     if (!this.state.activityLog) this.state.activityLog = [];
     if (!this.state.dailyGoal) this.state.dailyGoal = 30;
     if (!this.state.categories) this.state.categories = [];
+    if (!this.state.settings) this.state.settings = [];
     if (!this.state.migrations) this.state.migrations = {};
     this.ensureData(false);
     this.loadTheme();
@@ -111,7 +113,11 @@ class POSApp {
 
   logActivity(msg) {
     if (!this.state.activityLog) this.state.activityLog = [];
-    this.state.activityLog.unshift({ time: Utils.now(), user: this.currentRole || "sistema", msg });
+    this.state.activityLog.unshift({
+      time: Utils.now(),
+      user: this.currentRole || "sistema",
+      msg,
+    });
     if (this.state.activityLog.length > 200)
       this.state.activityLog = this.state.activityLog.slice(0, 200);
   }
@@ -184,7 +190,9 @@ class POSApp {
   }
 
   setupEventListeners() {
-    document.getElementById("themeToggle").addEventListener("click", () => this.toggleTheme());
+    document
+      .getElementById("themeToggle")
+      .addEventListener("click", () => this.toggleTheme());
     document.querySelectorAll("#paymentMethods .payment-method").forEach((m) =>
       m.addEventListener("click", () => {
         document
@@ -206,6 +214,7 @@ class POSApp {
           .forEach((x) => x.classList.remove("active"));
         m.classList.add("active");
         this.state.selectedOrderStatus = m.dataset.status;
+        this.updateCheckoutRules();
       }),
     );
     document.querySelectorAll("#expenseCategories .category-btn").forEach((b) =>
@@ -219,7 +228,9 @@ class POSApp {
     );
     document.querySelectorAll(".usage-type-btn").forEach((b) =>
       b.addEventListener("click", () => {
-        document.querySelectorAll(".usage-type-btn").forEach((x) => x.classList.remove("active"));
+        document
+          .querySelectorAll(".usage-type-btn")
+          .forEach((x) => x.classList.remove("active"));
         b.classList.add("active");
         this.state.selectedUsageType = b.dataset.type;
         this.syncUsageDeduct(b.dataset.type);
@@ -227,7 +238,9 @@ class POSApp {
     );
     document.querySelectorAll(".merma-type-btn").forEach((b) =>
       b.addEventListener("click", () => {
-        document.querySelectorAll(".merma-type-btn").forEach((x) => x.classList.remove("active"));
+        document
+          .querySelectorAll(".merma-type-btn")
+          .forEach((x) => x.classList.remove("active"));
         b.classList.add("active");
         this.state.selectedMermaType = b.dataset.type;
       }),
@@ -237,15 +250,21 @@ class POSApp {
         if (e.target === o) o.classList.remove("active");
       }),
     );
-    document.getElementById("adminPassword").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") this.verifyPassword();
-    });
-    document.getElementById("resetPassword").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") this.resetDay();
-    });
-    document.getElementById("loginPassword").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") this.confirmLogin();
-    });
+    document
+      .getElementById("adminPassword")
+      .addEventListener("keypress", (e) => {
+        if (e.key === "Enter") this.verifyPassword();
+      });
+    document
+      .getElementById("resetPassword")
+      .addEventListener("keypress", (e) => {
+        if (e.key === "Enter") this.resetDay();
+      });
+    document
+      .getElementById("loginPassword")
+      .addEventListener("keypress", (e) => {
+        if (e.key === "Enter") this.confirmLogin();
+      });
     document.querySelectorAll("#productsSubTabs .category-tab").forEach((t) =>
       t.addEventListener("click", () => {
         document
@@ -264,12 +283,15 @@ class POSApp {
       }),
     );
     ["chickensRaw", "chickensCooked"].forEach((id) => {
-      document.getElementById(id).addEventListener("input", () => this.updateChickenTotalPreview());
+      document
+        .getElementById(id)
+        .addEventListener("input", () => this.updateChickenTotalPreview());
     });
     document.addEventListener("keydown", (e) => {
       if (e.ctrlKey && e.key === "k") {
         e.preventDefault();
-        if (this.state.currentSection === "sell") document.getElementById("productSearch")?.focus();
+        if (this.state.currentSection === "sell")
+          document.getElementById("productSearch")?.focus();
       }
       if (e.key === "F2" && this.state.currentSection === "sell") {
         e.preventDefault();

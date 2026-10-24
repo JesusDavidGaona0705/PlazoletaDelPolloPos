@@ -51,8 +51,10 @@ Object.assign(POSApp.prototype, {
       .map(({ c, items }) => {
         const kind = this.categoryKind(c.id);
         let count = `${items.length} productos`;
-        if (kind === "asado") count = `${Utils.formatChickens(this.state.chickens.cooked)} asados`;
-        if (kind === "broaster") count = `${Utils.formatChickens(this.state.chickens.raw)} crudos`;
+        if (kind === "asado")
+          count = `${Utils.formatChickens(this.state.chickens.cooked)} asados`;
+        if (kind === "broaster")
+          count = `${Utils.formatChickens(this.state.chickens.raw)} crudos`;
         return `
         <div class="product-section" data-category="${Utils.sanitizeInput(c.id)}">
           <div class="product-section-header" style="border-left-color:${this.categoryColor(c)}">
@@ -171,8 +173,10 @@ Object.assign(POSApp.prototype, {
 
   getCartDiscount() {
     const sub = this.getCartSubtotal();
-    if (this.state.discountType === "percent") return sub * (this.state.discountValue / 100);
-    if (this.state.discountType === "fixed") return Math.min(this.state.discountValue, sub);
+    if (this.state.discountType === "percent")
+      return sub * (this.state.discountValue / 100);
+    if (this.state.discountType === "fixed")
+      return Math.min(this.state.discountValue, sub);
     return 0;
   },
 
@@ -193,11 +197,12 @@ Object.assign(POSApp.prototype, {
       Toast.warning("Vacío");
       return;
     }
-    document.getElementById("checkoutTotalDisplay").textContent = Utils.formatCurrency(
-      this.getCartTotal(),
-    );
+    document.getElementById("checkoutTotalDisplay").textContent =
+      Utils.formatCurrency(this.getCartTotal());
     document.getElementById("checkoutDiscountInfo").textContent =
-      this.getCartDiscount() > 0 ? `Desc: -${Utils.formatCurrency(this.getCartDiscount())}` : "";
+      this.getCartDiscount() > 0
+        ? `Desc: -${Utils.formatCurrency(this.getCartDiscount())}`
+        : "";
     document.getElementById("cashReceived").value = "";
     document.getElementById("cashDisplay").textContent = "$0";
     document.getElementById("changeDisplayContainer").innerHTML = "";
@@ -208,10 +213,56 @@ Object.assign(POSApp.prototype, {
     cs.innerHTML =
       '<option value="">General</option>' +
       this.state.clients
-        .map((c) => `<option value="${c.id}">${Utils.sanitizeInput(c.name)}</option>`)
+        .map(
+          (c) =>
+            `<option value="${c.id}">${Utils.sanitizeInput(c.name)}</option>`,
+        )
         .join("");
+    this.state.selectedOrderStatus = "pagado";
+    document
+      .querySelectorAll("#statusMethods .payment-method")
+      .forEach((x) =>
+        x.classList.toggle("active", x.dataset.status === "pagado"),
+      );
+    this.updateCheckoutRules();
     this.renderQuickCashButtons();
     this.showModal("checkoutModal");
+  },
+
+  /* Cliente obligatorio cuando la venta queda debiendo. */
+  fillCheckoutClients(selectId) {
+    const cs = document.getElementById("checkoutClient");
+    const keep = selectId || cs.value;
+    cs.innerHTML =
+      '<option value="">General</option>' +
+      this.state.clients
+        .map(
+          (c) =>
+            `<option value="${c.id}">${Utils.sanitizeInput(c.name)}</option>`,
+        )
+        .join("");
+    if (keep && this.state.clients.some((c) => c.id === keep)) cs.value = keep;
+  },
+
+  updateCheckoutRules() {
+    const pending = this.state.selectedOrderStatus === "pendiente";
+    const cs = document.getElementById("checkoutClient");
+    const general = cs.options[0];
+    general.textContent = pending ? "— Elige el cliente —" : "General";
+    document.getElementById("clientRequiredMark").textContent = pending
+      ? "*"
+      : "";
+    document.getElementById("clientRequiredHint").style.display =
+      pending && !cs.value ? "block" : "none";
+    cs.parentElement.classList.toggle("invalid", pending && !cs.value);
+    const cashGroup = document.getElementById("cashReceivedGroup");
+    if (cashGroup && pending) cashGroup.style.opacity = ".55";
+    else if (cashGroup) cashGroup.style.opacity = "";
+  },
+
+  openClientFromCheckout() {
+    this.openClientModal();
+    this._clientFromCheckout = true;
   },
 
   renderQuickCashButtons() {
@@ -237,7 +288,9 @@ Object.assign(POSApp.prototype, {
 
   updateChangeDisplay() {
     const t = this.getCartTotal();
-    const cash = Utils.parseFormattedNumber(document.getElementById("cashReceived").value);
+    const cash = Utils.parseFormattedNumber(
+      document.getElementById("cashReceived").value,
+    );
     const d = document.getElementById("cashDisplay"),
       c = document.getElementById("changeDisplayContainer");
     if (cash > 0) {
@@ -259,11 +312,16 @@ Object.assign(POSApp.prototype, {
   },
 
   updateMixto() {
-    const e = Utils.parseFormattedNumber(document.getElementById("mixtoEfectivo").value);
-    const t = Utils.parseFormattedNumber(document.getElementById("mixtoTransferencia").value);
+    const e = Utils.parseFormattedNumber(
+      document.getElementById("mixtoEfectivo").value,
+    );
+    const t = Utils.parseFormattedNumber(
+      document.getElementById("mixtoTransferencia").value,
+    );
     this.state.mixtoEfectivo = e;
     this.state.mixtoTransferencia = t;
-    document.getElementById("mixtoTotalCubierto").textContent = Utils.formatCurrency(e + t);
+    document.getElementById("mixtoTotalCubierto").textContent =
+      Utils.formatCurrency(e + t);
   },
 
   async completeSale() {
@@ -274,11 +332,19 @@ Object.assign(POSApp.prototype, {
     }
     const cid = document.getElementById("checkoutClient").value;
     const client = this.state.clients.find((c) => c.id === cid);
+    if (this.state.selectedOrderStatus === "pendiente" && !client) {
+      Toast.error("Elige o registra al cliente: la venta queda debiendo");
+      this.updateCheckoutRules();
+      document.getElementById("checkoutClient").focus();
+      return;
+    }
     const customerName = client ? client.name : "Cliente";
     const total = this.getCartTotal();
     const discount = this.getCartDiscount();
     let pm = this.state.selectedPaymentMethod;
-    let cashReceived = Utils.parseFormattedNumber(document.getElementById("cashReceived").value);
+    let cashReceived = Utils.parseFormattedNumber(
+      document.getElementById("cashReceived").value,
+    );
     let mixtoE = this.state.mixtoEfectivo,
       mixtoT = this.state.mixtoTransferencia;
     const pagado = this.state.selectedOrderStatus === "pagado";
@@ -294,6 +360,8 @@ Object.assign(POSApp.prototype, {
     }
     const sale = {
       id: Utils.generateId(),
+      number: this.nextInvoiceNumber(),
+      by: this.currentUserLabel(),
       timestamp: Utils.now(),
       customer: customerName,
       clientId: cid || null,
@@ -305,7 +373,10 @@ Object.assign(POSApp.prototype, {
       mixtoEfectivo: pm === "mixto" ? mixtoE : 0,
       mixtoTransferencia: pm === "mixto" ? mixtoT : 0,
       status: this.state.selectedOrderStatus,
-      change: pm === "efectivo" && cashReceived ? Math.max(0, cashReceived - total) : 0,
+      change:
+        pm === "efectivo" && cashReceived
+          ? Math.max(0, cashReceived - total)
+          : 0,
       notes: document.getElementById("orderNotes")?.value || "",
     };
     if (sale.status === "pagado") {
@@ -321,15 +392,18 @@ Object.assign(POSApp.prototype, {
     this.state.discountValue = 0;
     this.renderCart();
     this.hideModal("checkoutModal");
-    if (document.getElementById("orderNotes")) document.getElementById("orderNotes").value = "";
+    if (document.getElementById("orderNotes"))
+      document.getElementById("orderNotes").value = "";
     this.saveState();
     this.render();
     this.logActivity(`Venta ${sale.status}: ${Utils.formatCurrency(total)}`);
+    this.afterSale(sale);
   },
 
   renderCart() {
     const c = document.getElementById("cartItems");
-    document.getElementById("cartCount").textContent = `(${this.state.cart.length})`;
+    document.getElementById("cartCount").textContent =
+      `(${this.state.cart.length})`;
     if (this.state.cart.length === 0) {
       c.innerHTML =
         '<div class="empty-state"><i class="fas fa-shopping-basket"></i><p>Toca productos</p></div>';
@@ -349,17 +423,21 @@ Object.assign(POSApp.prototype, {
       this.getCartSubtotal(),
     );
     const disc = this.getCartDiscount();
-    document.getElementById("discountTotalRow").style.display = disc > 0 ? "flex" : "none";
-    document.getElementById("cartDiscount").textContent = "-" + Utils.formatCurrency(disc);
-    document.getElementById("cartTotal").textContent = Utils.formatCurrency(this.getCartTotal());
+    document.getElementById("discountTotalRow").style.display =
+      disc > 0 ? "flex" : "none";
+    document.getElementById("cartDiscount").textContent =
+      "-" + Utils.formatCurrency(disc);
+    document.getElementById("cartTotal").textContent = Utils.formatCurrency(
+      this.getCartTotal(),
+    );
     const bar = document.getElementById("cartBar");
     if (bar) {
       const n = this.state.cart.reduce((q, i) => q + i.quantity, 0);
       bar.classList.toggle("has-items", n > 0);
-      document.getElementById("cartBarCount").textContent = Utils.formatNumber(n);
-      document.getElementById("cartBarTotal").textContent = Utils.formatCurrency(
-        this.getCartTotal(),
-      );
+      document.getElementById("cartBarCount").textContent =
+        Utils.formatNumber(n);
+      document.getElementById("cartBarTotal").textContent =
+        Utils.formatCurrency(this.getCartTotal());
     }
   },
 });

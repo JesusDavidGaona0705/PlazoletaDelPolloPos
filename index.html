@@ -162,6 +162,13 @@
           <div id="welcomeRole">Modo Empleado</div>
         </div>
 
+        <button
+          class="btn btn-outline btn-block admin-only mb-2"
+          onclick="app.openReceiptSettings()"
+          style="margin-bottom: 0.6rem"
+        >
+          🧾 Ajustes de factura
+        </button>
         <div class="card mb-2" id="goalCard">
           <div class="flex-between">
             <h3 style="font-size: 0.9rem">🎯 Meta del Día</h3>
@@ -765,7 +772,7 @@
       <section class="section" id="clientsSection">
         <div class="section-header">
           <h2 style="font-size: 1rem">👥 Clientes</h2>
-          <button class="btn btn-primary btn-sm" onclick="app.showModal('addClientModal')">
+          <button class="btn btn-primary btn-sm" onclick="app.openClientModal()">
             <i class="fas fa-plus"></i> Nuevo
           </button>
         </div>
@@ -848,116 +855,213 @@
     </div>
 
     <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true">
-      <div class="modal">
+      <div class="modal checkout-modal">
         <div class="modal-header">
           <h3 class="modal-title">💳 Cobrar</h3>
           <button class="modal-close" aria-label="Cerrar" onclick="app.hideModal('checkoutModal')">
             &times;
           </button>
         </div>
-        <div
-          style="
-            background: var(--bg3);
-            padding: 0.75rem;
-            border-radius: var(--rs);
-            margin-bottom: 0.75rem;
-            text-align: center;
-          "
-        >
-          <div style="font-size: 0.75rem; color: var(--tx2)">Total</div>
-          <div style="font-size: 1.75rem; font-weight: 700; color: var(--primary)" id="checkoutTotalDisplay">
-            $0
+        <div class="checkout-grid">
+          <div class="checkout-col">
+            <div class="checkout-total">
+              <div style="font-size: 0.7rem; color: var(--tx2)">Total</div>
+              <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary)" id="checkoutTotalDisplay">
+                $0
+              </div>
+              <div
+                id="checkoutDiscountInfo"
+                style="font-size: 0.7rem; color: var(--success); margin-top: 0.1rem"
+              ></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estado</label>
+              <div class="payment-methods" id="statusMethods">
+                <div class="payment-method active" data-status="pagado">
+                  <i class="fas fa-check-circle"></i>
+                  <div>Pagado</div>
+                </div>
+                <div class="payment-method" data-status="pendiente">
+                  <i class="fas fa-clock"></i>
+                  <div>Pendiente</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="checkoutClient">Cliente <span id="clientRequiredMark"></span></label>
+              <div class="client-row">
+                <select class="form-select" id="checkoutClient" onchange="app.updateCheckoutRules()">
+                  <option value="">General</option>
+                </select>
+                <button class="btn btn-outline btn-sm" type="button" onclick="app.openClientFromCheckout()">
+                  <i class="fas fa-user-plus"></i> Nuevo
+                </button>
+              </div>
+              <div id="clientRequiredHint" class="client-hint" style="display: none">
+                ⚠️ Esta venta queda debiendo: elige o registra al cliente.
+              </div>
+            </div>
           </div>
-          <div
-            id="checkoutDiscountInfo"
-            style="font-size: 0.7rem; color: var(--success); margin-top: 0.15rem"
-          ></div>
+          <div class="checkout-col">
+            <div class="form-group">
+              <label class="form-label">Método</label>
+              <div class="payment-methods" id="paymentMethods">
+                <div class="payment-method active" data-method="efectivo">
+                  <i class="fas fa-money-bill-wave"></i>
+                  <div>Efectivo</div>
+                </div>
+                <div class="payment-method" data-method="transferencia">
+                  <i class="fas fa-mobile-alt"></i>
+                  <div>Transf.</div>
+                </div>
+                <div class="payment-method" data-method="mixto">
+                  <i class="fas fa-exchange-alt"></i>
+                  <div>Mixto</div>
+                </div>
+              </div>
+            </div>
+            <div id="mixtoPaymentSection" style="display: none">
+              <div class="mixto-row">
+                <div class="form-group">
+                  <label class="form-label">💵 Efectivo</label
+                  ><input
+                    type="text"
+                    class="form-input money-input"
+                    id="mixtoEfectivo"
+                    placeholder="$0"
+                    oninput="app.updateMixto()"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">📱 Transf.</label
+                  ><input
+                    type="text"
+                    class="form-input money-input"
+                    id="mixtoTransferencia"
+                    placeholder="$0"
+                    oninput="app.updateMixto()"
+                  />
+                </div>
+              </div>
+              <div class="mixto-covered">Cubierto: <strong id="mixtoTotalCubierto">$0</strong></div>
+            </div>
+            <div class="form-group" id="cashReceivedGroup">
+              <label class="form-label">💵 Recibido</label>
+              <div class="cash-input-display" id="cashDisplay" style="display: none">$0</div>
+              <input
+                type="text"
+                class="form-input money-input"
+                id="cashReceived"
+                placeholder="0"
+                oninput="app.updateChangeDisplay()"
+              />
+              <div class="quick-cash-btns" id="quickCashBtns"></div>
+            </div>
+            <div id="changeDisplayContainer"></div>
+          </div>
+        </div>
+        <div class="modal-footer checkout-footer">
+          <button class="btn btn-outline" onclick="app.hideModal('checkoutModal')">Cancelar</button>
+          <button class="btn btn-success btn-lg" onclick="app.completeSale()">✅ COBRAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="saleDoneModal" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="saleDoneTitle">✅ Venta registrada</h3>
+          <button class="modal-close" aria-label="Cerrar" onclick="app.hideModal('saleDoneModal')">
+            &times;
+          </button>
+        </div>
+        <div id="saleDoneInfo" style="text-align: center; margin-bottom: 0.85rem"></div>
+        <div class="done-actions">
+          <button class="btn btn-primary btn-lg" id="saleDonePrintBtn" onclick="app.saleDonePrint()">
+            🖨️ Imprimir
+          </button>
+          <button class="btn btn-outline" onclick="app.saleDonePreview()">👁 Vista previa</button>
+          <button class="btn btn-outline" onclick="app.shareReceipt()">📲 WhatsApp</button>
+          <button class="btn btn-outline" onclick="app.hideModal('saleDoneModal')">No imprimir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="receiptPreviewModal" role="dialog" aria-modal="true">
+      <div class="modal receipt-preview-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">🧾 Factura</h3>
+          <button class="modal-close" aria-label="Cerrar" onclick="app.hideModal('receiptPreviewModal')">
+            &times;
+          </button>
+        </div>
+        <iframe id="receiptPreviewFrame" class="receipt-frame" title="Vista previa de la factura"></iframe>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="app.shareReceipt(app._previewSale)">📲 WhatsApp</button>
+          <button class="btn btn-primary" onclick="app.previewPrint()">🖨️ Imprimir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="receiptSettingsModal" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">🧾 Ajustes de factura</h3>
+          <button class="modal-close" aria-label="Cerrar" onclick="app.hideModal('receiptSettingsModal')">
+            &times;
+          </button>
         </div>
         <div class="form-group">
-          <label class="form-label">Cliente</label
-          ><select class="form-select" id="checkoutClient" style="min-height: 40px">
-            <option value="">General</option>
+          <label class="form-label">Nombre del local</label>
+          <input type="text" class="form-input" id="rcName" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Frase de agradecimiento</label>
+          <input type="text" class="form-input" id="rcSlogan" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección</label>
+          <input type="text" class="form-input" id="rcAddress" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="text" class="form-input" id="rcPhone" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp del código QR (con 57)</label>
+          <input type="tel" class="form-input" id="rcWhatsapp" inputmode="numeric" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">NIT (opcional)</label>
+          <input type="text" class="form-input" id="rcNit" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Texto bajo el QR</label>
+          <input type="text" class="form-input" id="rcFooter" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display: flex; gap: 0.4rem; align-items: center">
+            <input type="checkbox" id="rcQr" /> Mostrar código QR
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Papel</label>
+          <select class="form-select" id="rcPaper">
+            <option value="80">80 mm (Digital POS 80C)</option>
+            <option value="58">58 mm</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Método</label>
-          <div class="payment-methods" id="paymentMethods">
-            <div class="payment-method active" data-method="efectivo">
-              <i class="fas fa-money-bill-wave"></i>
-              <div>Efectivo</div>
-            </div>
-            <div class="payment-method" data-method="transferencia">
-              <i class="fas fa-mobile-alt"></i>
-              <div>Transf.</div>
-            </div>
-            <div class="payment-method" data-method="mixto">
-              <i class="fas fa-exchange-alt"></i>
-              <div>Mixto</div>
-            </div>
-          </div>
-        </div>
-        <div id="mixtoPaymentSection" style="display: none">
-          <div class="form-group">
-            <label class="form-label">💵 Efectivo</label
-            ><input
-              type="text"
-              class="form-input money-input"
-              id="mixtoEfectivo"
-              placeholder="$0"
-              oninput="app.updateMixto()"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label">📱 Transferencia</label
-            ><input
-              type="text"
-              class="form-input money-input"
-              id="mixtoTransferencia"
-              placeholder="$0"
-              oninput="app.updateMixto()"
-            />
-          </div>
-          <div
-            style="
-              background: var(--bg3);
-              padding: 0.5rem;
-              border-radius: var(--rs);
-              font-size: 0.8rem;
-              text-align: center;
-            "
-          >
-            Cubierto: <strong id="mixtoTotalCubierto">$0</strong>
-          </div>
-        </div>
-        <div class="form-group" id="cashReceivedGroup">
-          <label class="form-label">💵 Recibido</label>
-          <div class="cash-input-display" id="cashDisplay">$0</div>
-          <input
-            type="text"
-            class="form-input money-input"
-            id="cashReceived"
-            placeholder="0"
-            oninput="app.updateChangeDisplay()"
-          />
-          <div class="quick-cash-btns" id="quickCashBtns"></div>
-        </div>
-        <div id="changeDisplayContainer"></div>
-        <div class="form-group">
-          <label class="form-label">Estado</label>
-          <div class="payment-methods" id="statusMethods">
-            <div class="payment-method active" data-status="pagado">
-              <i class="fas fa-check-circle"></i>
-              <div>Pagado</div>
-            </div>
-            <div class="payment-method" data-status="pendiente">
-              <i class="fas fa-clock"></i>
-              <div>Pendiente</div>
-            </div>
-          </div>
+          <label class="form-label">Al cobrar</label>
+          <select class="form-select" id="rcMode">
+            <option value="ask">Preguntar si imprimir</option>
+            <option value="always">Imprimir siempre sin preguntar</option>
+            <option value="never">No imprimir</option>
+          </select>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline" onclick="app.hideModal('checkoutModal')">Cancelar</button>
-          <button class="btn btn-success btn-lg" onclick="app.completeSale()">✅ COBRAR</button>
+          <button class="btn btn-outline" onclick="app.previewSettingsReceipt()">👁 Guardar y ver ejemplo</button>
+          <button class="btn btn-success" onclick="app.saveReceiptSettings()">💾 Guardar</button>
         </div>
       </div>
     </div>
@@ -1370,17 +1474,17 @@
       <div class="modal">
         <div class="modal-header">
           <h3 class="modal-title">👤 Cliente</h3>
-          <button class="modal-close" aria-label="Cerrar" onclick="app.hideModal('addClientModal')">
+          <button class="modal-close" aria-label="Cerrar" onclick="app.closeClientModal()">
             &times;
           </button>
         </div>
         <div class="form-group">
-          <label class="form-label">Nombre</label
+          <label class="form-label">Nombre *</label
           ><input type="text" class="form-input" id="clientName" placeholder="Nombre" />
         </div>
         <div class="form-group">
-          <label class="form-label">Teléfono</label
-          ><input type="tel" class="form-input" id="clientPhone" placeholder="300 123 4567" />
+          <label class="form-label">Teléfono *</label
+          ><input type="tel" class="form-input" id="clientPhone" placeholder="300 123 4567" inputmode="numeric" />
         </div>
         <div class="form-group">
           <label class="form-label">Notas</label
@@ -1392,7 +1496,7 @@
           ></textarea>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline" onclick="app.hideModal('addClientModal')">Cancelar</button>
+          <button class="btn btn-outline" onclick="app.closeClientModal()">Cancelar</button>
           <button class="btn btn-success" onclick="app.saveClient()">💾 Guardar</button>
         </div>
       </div>
@@ -1440,6 +1544,8 @@
     <script src="js/config.js"></script>
     <script src="js/security.js"></script>
     <script src="js/utils.js"></script>
+    <script src="vendor/qr/qrcode.js"></script>
+    <script src="js/receipt-assets.js"></script>
     <script src="js/pwa.js"></script>
     <script src="js/cloud.js"></script>
     <script src="js/app/core.js"></script>
@@ -1451,6 +1557,7 @@
     <script src="js/app/chickens.js"></script>
     <script src="js/app/cash.js"></script>
     <script src="js/app/clients.js"></script>
+    <script src="js/app/receipt.js"></script>
     <script src="js/app/reports.js"></script>
     <script src="js/main.js"></script>
   </body>
