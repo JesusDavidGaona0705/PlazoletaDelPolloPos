@@ -194,24 +194,18 @@ Object.assign(POSApp.prototype, {
 
   buildNavigation() {
     const n = document.getElementById("navItems");
-    const mesas = `<button
-          class="nav-item"
-          data-section="tables"><i class="fas fa-chair"></i><span>Mesas</span><span
-          class="nav-badge"
-          id="tablesBadge"
-          style="display:none">0</span></button>`;
     if (this.currentRole === "employee") {
       n.innerHTML = `<button
           class="nav-item active"
           data-section="home"><i class="fas fa-home"></i><span>Inicio</span></button><button
           class="nav-item"
-          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button>${mesas}`;
+          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button>`;
     } else {
       n.innerHTML = `<button
           class="nav-item active"
           data-section="home"><i class="fas fa-home"></i><span>Inicio</span></button><button
           class="nav-item"
-          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button>${mesas}<button
+          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button><button
           class="nav-item"
           data-section="cash"><i class="fas fa-cash-register"></i><span>Caja</span><span
           class="nav-badge"
@@ -251,7 +245,6 @@ Object.assign(POSApp.prototype, {
       cash: "cashSection",
       reports: "reportsSection",
       clients: "clientsSection",
-      tables: "tablesSection",
     };
     const id = map[name];
     if (id) {

@@ -1665,9 +1665,12 @@ textarea {
     grid-template-columns: minmax(0, 1fr) 340px;
     gap: 1rem;
   }
-  .cart-panel {
+  /* Si Pedido + Mesas no cabe en pantalla, baja con la página hasta que se ve su final
+     y ahí se queda fija (--side-h lo pone watchSideColumn en sell.js). */
+  .sell-side-col {
     position: sticky;
-    top: 80px;
+    top: min(80px, calc(100vh - var(--nh) - 1rem - var(--side-h, 0px)));
+    align-self: start;
   }
   .cart-items {
     max-height: 400px;
@@ -2477,73 +2480,33 @@ body[data-section="sell"] .cart-bar.has-items {
   background: var(--bg3);
   margin-bottom: 0.25rem;
 }
-.tables-summary {
-  font-weight: 700;
-  margin-bottom: 0.6rem;
-}
-.tables-free {
-  font-weight: 400;
-  font-size: 0.78rem;
-  color: var(--tx2);
-  margin-top: 0.15rem;
-}
-.tables-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 0.6rem;
-}
-.table-card {
-  text-align: left;
+/* Columna derecha de Vender: Pedido y, debajo, Mesas */
+.sell-side-col {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.75rem 0.85rem;
-  border: 2px solid var(--warning, #f59e0b);
-  border-radius: var(--r);
-  background: var(--bg2);
-  color: var(--tx);
-  font-family: inherit;
-  cursor: pointer;
+  gap: 0.75rem;
   min-width: 0;
 }
-.table-card:active {
-  transform: scale(0.98);
+.sell-side-col .cart-panel {
+  position: static;
 }
-.tc-top,
-.tc-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-.tc-name {
-  font-weight: 700;
-  font-size: 1.05rem;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tc-time {
-  font-size: 0.75rem;
-  color: var(--tx2);
-  white-space: nowrap;
-}
-.tc-items {
+.tables-summary {
   font-size: 0.8rem;
   color: var(--tx2);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  margin-bottom: 0.5rem;
 }
-.tc-bottom span {
-  font-size: 0.78rem;
+.tables-panel-grid {
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  max-height: none;
+  overflow: visible;
+}
+.table-tile .tt-time {
+  font-size: 0.65rem;
   color: var(--tx2);
+  white-space: nowrap;
 }
-.tc-bottom b {
-  color: var(--primary);
-  font-size: 1.1rem;
+.table-tile.selected .tt-time {
+  color: var(--on-primary);
 }
 #tableDetailItems {
   max-height: 42vh;

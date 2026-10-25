@@ -195,6 +195,16 @@ Object.assign(POSApp.prototype, {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   },
 
+  /* Alto de la columna Pedido + Mesas, para que el CSS sepa cuándo no cabe en pantalla. */
+  watchSideColumn() {
+    const col = document.querySelector(".sell-side-col");
+    if (!col || !window.ResizeObserver) return;
+    const fit = () =>
+      col.style.setProperty("--side-h", col.offsetHeight + "px");
+    new ResizeObserver(fit).observe(col);
+    fit();
+  },
+
   getCartSubtotal() {
     return this.state.cart.reduce((t, i) => t + i.price * i.quantity, 0);
   },

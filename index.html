@@ -349,6 +349,7 @@
             <div id="sellSections"></div>
           </div>
 
+          <div class="sell-side-col">
           <div class="cart-panel" id="cartPanel">
             <div class="cart-header">
               <div class="cart-title">
@@ -427,21 +428,27 @@
               </button>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section class="section" id="tablesSection">
-        <div class="section-header">
-          <h2 class="section-title">🍽️ Mesas</h2>
-          <button class="btn btn-outline btn-sm admin-only" onclick="app.setTableCount()">
-            <i class="fas fa-cog"></i> Nº de mesas
-          </button>
+          <div class="cart-panel tables-panel" id="tablesPanel">
+            <div class="cart-header">
+              <div class="cart-title">
+                🍽️ Mesas <span id="tablesCount" style="font-size: 0.75rem; color: var(--tx2)">(0)</span>
+              </div>
+              <button
+                class="btn btn-outline btn-sm admin-only"
+                onclick="app.setTableCount()"
+                title="Número de mesas"
+                aria-label="Número de mesas"
+                style="min-height: 32px"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+            </div>
+            <div id="tablesSummary" class="tables-summary">Sin mesas abiertas</div>
+            <div id="tablesGrid" class="table-grid tables-panel-grid"></div>
+          </div>
+          </div>
         </div>
-        <div class="tables-summary">
-          <div id="tablesSummary">Sin mesas abiertas</div>
-          <div id="tablesFree" class="tables-free"></div>
-        </div>
-        <div id="tablesList" class="tables-list"></div>
       </section>
 
       <section class="section" id="productsSection">

@@ -1,4 +1,4 @@
-LA PLAZOLETA DEL POLLO - POS  (versión 2.3.0)
+LA PLAZOLETA DEL POLLO - POS  (versión 2.3.1)
 =============================================
 
 CONTENIDO DE ESTA CARPETA
@@ -119,14 +119,14 @@ CAMBIOS 2.2.1
 
 CAMBIOS 2.3.0
   - Mesas: en Vender, arma el pedido y toca «🍽️ Mesa». Elige Mesa 1, 2, 3… o escribe el
-    nombre del cliente. El pedido queda en espera en la nueva sección «Mesas» y el pollo se
+    nombre del cliente. El pedido queda en espera en el panel «Mesas» (en Vender) y el pollo se
     descuenta del inventario en ese momento (si se quita un producto, se devuelve).
   - En cada mesa: agregar más productos, subir o bajar cantidades (cualquiera puede), cambiar
     de mesa o de nombre, cancelar la mesa, imprimir la comanda para cocina o la cuenta previa,
     dividir la cuenta (cada persona paga lo suyo) y cobrar con la ventana de cobro de siempre.
     Si el cliente se va sin pagar, al cobrar elige «Pendiente» y queda como fiado.
   - Comanda: al enviar a la mesa se puede imprimir solo lo nuevo, con la nota para cocina.
-  - Número de mesas: el administrador lo cambia en Mesas → «Nº de mesas» (6 por defecto).
+  - Número de mesas: el administrador lo cambia con el engranaje del panel Mesas (6 por defecto).
   - Cerrar el día avisa si hay mesas sin cobrar; no se borran.
   - Inicio de sesión: la app ya no entra sola con la última cuenta. Muestra «Continuar como …»
     o «Usar otra cuenta», y una lista de las cuentas usadas en ese equipo.
@@ -134,3 +134,9 @@ CAMBIOS 2.3.0
     para que nunca se salgan del recuadro.
   - Vuelve a pegar firebase-reglas-2-con-cuentas.json (nuevas secciones «openOrders» y
     «orderItems»). Con las reglas viejas, las mesas funcionan en cada equipo pero no se comparten.
+
+CAMBIOS 2.3.1
+  - Mesas ya no es una sección aparte del menú: ahora es un panel en Vender, debajo de Pedido,
+    con un botón por mesa. Mesa ocupada (naranja): muestra el total y el tiempo; al tocarla se
+    abre su detalle. Mesa libre: si hay productos en el pedido, se abre «Enviar a mesa» con esa
+    mesa elegida. Los pedidos a nombre de un cliente aparecen después de las mesas numeradas.

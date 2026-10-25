@@ -69,6 +69,7 @@ class POSApp {
     if (!this.state.migrations) this.state.migrations = {};
     this.ensureData(false);
     this.loadTheme();
+    this.watchSideColumn();
     document.getElementById("loginScreen").classList.remove("hidden");
     document.getElementById("loadingScreen").classList.add("hidden");
     this.logActivity("Sistema iniciado");

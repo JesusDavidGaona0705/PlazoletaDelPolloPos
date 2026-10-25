@@ -3,7 +3,7 @@
    - Librerías, fuentes e íconos: se guardan al primer uso.
    - Página principal: busca la versión nueva en la red y, si no hay internet, usa la guardada.
    - No toca las conexiones a Firebase (base de datos y cuentas). */
-const VERSION='pollo-pos-2.3.0';
+const VERSION='pollo-pos-2.3.1';
 const PRECACHE = [
   './',
   'index.html',

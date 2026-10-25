@@ -282,19 +282,20 @@ Object.assign(POSApp.prototype, {
     if (print) this.printComanda(order.id, batch);
   },
 
-  /* ---------- agregar desde la sección Mesas ---------- */
+  /* ---------- agregar desde el detalle de una mesa ---------- */
   addToTable(orderId) {
     const o = this.findOrder(orderId);
     if (!o) return;
     this.tableTarget = orderId;
     this.hideModal("tableDetailModal");
     this.showSection("sell");
+    this.renderTables();
     Toast.info(`Toca los productos para ${this.orderLabel(o)}`);
   },
 
   cancelTableTarget() {
     this.tableTarget = null;
-    this.renderTableTarget();
+    this.renderTables();
   },
 
   renderTableTarget() {
@@ -320,48 +321,57 @@ Object.assign(POSApp.prototype, {
       .forEach((el) => el.classList.toggle("targeting", !!o));
   },
 
-  /* ---------- sección Mesas ---------- */
+  /* ---------- panel Mesas (en Vender, debajo del pedido) ---------- */
   renderTables() {
     const list = this.openOrdersList();
-    const badge = document.getElementById("tablesBadge");
-    if (badge) {
-      badge.textContent = Utils.formatNumber(list.length);
-      badge.style.display = list.length ? "block" : "none";
-    }
     this.renderTableTarget();
-    const box = document.getElementById("tablesList");
+    const box = document.getElementById("tablesGrid");
     if (!box) return;
-    const n = this.tableCount();
-    const free = [];
-    for (let i = 1; i <= n; i++) if (!this.orderForTable(i)) free.push(i);
+    document.getElementById("tablesCount").textContent =
+      `(${Utils.formatNumber(list.length)})`;
     document.getElementById("tablesSummary").textContent = list.length
       ? `${list.length} abierta(s) · ${Utils.formatCurrency(list.reduce((t, o) => t + this.orderTotal(o.id), 0))} por cobrar`
       : "Sin mesas abiertas";
-    document.getElementById("tablesFree").textContent = free.length
-      ? "Libres: " + free.map((i) => "Mesa " + i).join(", ")
-      : "Todas las mesas están ocupadas";
-    if (!list.length) {
-      box.innerHTML =
-        '<div class="empty-state"><i class="fas fa-chair"></i><p>No hay mesas abiertas.<br>En Vender, arma el pedido y toca «🍽️ Mesa».</p></div>';
+    const tile = (o, name, onclick) => {
+      const sel = o && o.id === this.tableTarget;
+      return `<button type="button" class="table-tile ${o ? "busy" : ""} ${sel ? "selected" : ""}"
+          onclick="${onclick}">
+          <span class="tt-name">${Utils.sanitizeInput(name)}</span>
+          <span class="tt-sub">${o ? Utils.formatCurrency(this.orderTotal(o.id)) : "Libre"}</span>
+          ${o ? `<span class="tt-time">${this.minutesAgo(o.openedAt)}</span>` : ""}
+        </button>`;
+    };
+    const shown = new Set();
+    const tiles = [];
+    for (let i = 1; i <= this.tableCount(); i++) {
+      const o = this.orderForTable(i);
+      if (o) shown.add(o.id);
+      tiles.push(tile(o, `Mesa ${i}`, `app.openTableTile(${i})`));
+    }
+    /* Pedidos a nombre, recuperados o repetidos (dos cajas abrieron la misma mesa a la vez) */
+    list
+      .filter((o) => !shown.has(o.id))
+      .forEach((o) =>
+        tiles.push(
+          tile(o, this.orderLabel(o), `app.openTableDetail('${o.id}')`),
+        ),
+      );
+    box.innerHTML = tiles.join("");
+  },
+
+  /* Mesa ocupada: ver su detalle. Mesa libre: enviarle el pedido que se está armando. */
+  openTableTile(n) {
+    const o = this.orderForTable(n);
+    if (o) {
+      this.openTableDetail(o.id);
       return;
     }
-    box.innerHTML = list
-      .map((o) => {
-        const items = this.orderItemsOf(o.id);
-        const qty = items.reduce((q, i) => q + i.quantity, 0);
-        const names = items
-          .slice(0, 4)
-          .map((i) => `${Utils.formatNumber(i.quantity)}× ${i.name}`)
-          .join(", ");
-        return `<button type="button" class="table-card" onclick="app.openTableDetail('${o.id}')">
-          <div class="tc-top"><span class="tc-name">${o.table ? "🍽️" : "👤"} ${Utils.sanitizeInput(this.orderLabel(o))}</span>
-            <span class="tc-time">${this.minutesAgo(o.openedAt)}</span></div>
-          <div class="tc-items">${Utils.sanitizeInput(names)}${items.length > 4 ? "…" : ""}</div>
-          <div class="tc-bottom"><span>${Utils.formatNumber(qty)} producto(s)</span>
-            <b>${Utils.formatCurrency(this.orderTotal(o.id))}</b></div>
-        </button>`;
-      })
-      .join("");
+    if (!this.state.cart.length) {
+      Toast.info(`Mesa ${n} está libre: agrega productos al pedido y tócala`);
+      return;
+    }
+    this.openTableSend();
+    this.pickSendTarget("table", n);
   },
 
   /* ---------- detalle de una mesa ---------- */
