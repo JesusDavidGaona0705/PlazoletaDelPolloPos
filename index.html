@@ -61,6 +61,16 @@
           </div>
         </button>
         <div id="accountLogin" style="display: none">
+          <div id="accSession" class="acc-session" style="display: none">
+            <div class="acc-session-label">Hay una sesión guardada en este equipo</div>
+            <button class="btn btn-primary btn-block" onclick="Cloud.continueSession()">
+              Continuar como <b id="accSessionEmail"></b>
+            </button>
+            <button class="btn btn-outline btn-block" onclick="Cloud.switchAccount()" style="margin-top: 0.4rem">
+              Usar otra cuenta
+            </button>
+          </div>
+          <div id="accForm">
           <div class="form-group" style="margin-bottom: 0.5rem">
             <input
               type="email"
@@ -96,6 +106,8 @@
           >
             ¿Olvidaste tu contraseña?
           </button>
+          <div id="accKnown" class="acc-known"></div>
+          </div>
         </div>
         <button class="login-link" id="accToggle" onclick="app.toggleAccountLogin()" style="display: none">
           Entrar con una cuenta
@@ -232,7 +244,7 @@
         </div>
 
         <div class="dashboard-grid">
-          <div class="card card-clickable" onclick="app.toggleVentasDesglose()">
+          <div class="card card-clickable" id="ventasCard" onclick="app.toggleVentasDesglose()">
             <div class="card-header">
               <div class="card-icon">💰</div>
               <div style="flex: 1; min-width: 0">
@@ -244,7 +256,7 @@
                     style="font-size: 0.6rem; margin-left: 0.2rem"
                   ></i>
                 </div>
-                <div class="card-value" id="dashVentas" style="font-size: 1.15rem">$0</div>
+                <div class="card-value" id="dashVentas">$0</div>
               </div>
             </div>
             <div class="ventas-desglose" id="ventasDesglose">
@@ -329,6 +341,10 @@
 
         <div class="sell-layout">
           <div class="sell-products-col">
+            <div id="tableTargetBanner" class="table-target-banner" style="display: none">
+              <span>🍽️ Agregando a <b id="tableTargetLabel"></b></span>
+              <button class="btn btn-outline btn-sm" onclick="app.cancelTableTarget()">Cancelar</button>
+            </div>
             <nav id="sellCatNav" class="sell-cat-nav" aria-label="Ir a categoría"></nav>
             <div id="sellSections"></div>
           </div>
@@ -402,11 +418,30 @@
               <div class="cart-total-label" style="color: #fff; font-weight: 700">TOTAL</div>
               <div class="cart-total-value" id="cartTotal" style="color: #fff; font-size: 1.25rem">$0</div>
             </div>
-            <button class="btn btn-primary btn-block btn-lg" onclick="app.showCheckout()">
-              <i class="fas fa-credit-card"></i> Cobrar
-            </button>
+            <div class="cart-actions">
+              <button class="btn btn-outline btn-lg table-send-btn" onclick="app.openTableSend()">
+                🍽️ <span class="table-send-label">Mesa</span>
+              </button>
+              <button class="btn btn-primary btn-lg" onclick="app.showCheckout()">
+                <i class="fas fa-credit-card"></i> Cobrar
+              </button>
+            </div>
           </div>
         </div>
+      </section>
+
+      <section class="section" id="tablesSection">
+        <div class="section-header">
+          <h2 class="section-title">🍽️ Mesas</h2>
+          <button class="btn btn-outline btn-sm admin-only" onclick="app.setTableCount()">
+            <i class="fas fa-cog"></i> Nº de mesas
+          </button>
+        </div>
+        <div class="tables-summary">
+          <div id="tablesSummary">Sin mesas abiertas</div>
+          <div id="tablesFree" class="tables-free"></div>
+        </div>
+        <div id="tablesList" class="tables-list"></div>
       </section>
 
       <section class="section" id="productsSection">
@@ -988,6 +1023,83 @@
       </div>
     </div>
 
+    <div class="modal-overlay" id="tableSendModal" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">🍽️ Enviar a mesa</h3>
+          <button class="modal-close" aria-label="Cerrar" onclick="app.hideModal('tableSendModal')">&times;</button>
+        </div>
+        <div id="tableSendGrid" class="table-grid"></div>
+        <div class="form-group" style="margin: 0.6rem 0 0.4rem">
+          <input
+            type="text"
+            class="form-input"
+            id="tableSendName"
+            maxlength="40"
+            placeholder="…o escribe el nombre del cliente"
+            oninput="app.onSendNameInput()"
+          />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.4rem">
+          <textarea
+            class="form-textarea"
+            id="tableSendNote"
+            rows="2"
+            maxlength="200"
+            placeholder="Nota para cocina (opcional): sin ensalada, bien asado…"
+            style="min-height: 46px; font-size: 0.85rem"
+          ></textarea>
+        </div>
+        <label class="check-row"><input type="checkbox" id="tableSendPrint" /> Imprimir comanda para cocina</label>
+        <div id="tableSendInfo" class="table-send-info"></div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="app.hideModal('tableSendModal')">Cancelar</button>
+          <button class="btn btn-primary" id="tableSendBtn" onclick="app.sendCartToTable()">
+            <i class="fas fa-paper-plane"></i> Enviar pedido
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="tableDetailModal" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="modal-header">
+          <div style="min-width: 0">
+            <h3 class="modal-title" id="tableDetailTitle">Mesa</h3>
+            <div id="tableDetailMeta" style="font-size: 0.75rem; color: var(--tx2)"></div>
+          </div>
+          <button class="modal-close" aria-label="Cerrar" onclick="app.hideModal('tableDetailModal')">&times;</button>
+        </div>
+        <div id="tableSplitHint" class="table-split-hint" style="display: none">
+          ✂️ Con + y − marca lo que paga esta persona. Lo demás queda en la mesa.
+        </div>
+        <div id="tableDetailItems" class="cart-items"></div>
+        <div class="cart-total" style="background: var(--primary); color: #fff">
+          <div class="cart-total-label" style="color: #fff; font-weight: 700">TOTAL MESA</div>
+          <div class="cart-total-value" id="tableDetailTotal" style="color: #fff; font-size: 1.2rem">$0</div>
+        </div>
+        <div class="cart-total" id="tableSplitRow" style="display: none; background: rgba(59, 130, 246, 0.12)">
+          <div class="cart-total-label" style="color: var(--info); font-weight: 700">A cobrar ahora</div>
+          <div class="cart-total-value" id="tableSplitTotal" style="color: var(--info)">$0</div>
+        </div>
+        <div class="table-detail-actions">
+          <button class="btn btn-outline" onclick="app.addToTable(app._detailOrder)">
+            <i class="fas fa-plus"></i> Agregar
+          </button>
+          <button class="btn btn-outline" id="tableSplitBtn" onclick="app.toggleSplit()">
+            <i class="fas fa-cut"></i> Dividir
+          </button>
+          <button class="btn btn-outline" onclick="app.printComanda()" title="Imprimir comanda para cocina">🧑‍🍳 Comanda</button>
+          <button class="btn btn-outline" onclick="app.printTableBill()" title="Imprimir cuenta previa">🧾 Cuenta</button>
+          <button class="btn btn-outline" onclick="app.renameTable()" title="Cambiar de mesa o de nombre">✏️ Mover</button>
+          <button class="btn btn-outline btn-danger-outline" onclick="app.cancelTable()" title="Cancelar la mesa">🗑 Anular</button>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" id="tablePayBtn" onclick="app.chargeTable()">
+          <i class="fas fa-credit-card"></i> Cobrar todo
+        </button>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="receiptPreviewModal" role="dialog" aria-modal="true">
       <div class="modal receipt-preview-modal">
         <div class="modal-header">
@@ -1433,6 +1545,7 @@
           </button>
         </div>
         <p style="margin-bottom: 0.6rem; font-size: 0.8rem">¿Archivar y empezar nuevo día? Las ventas y gastos se archivan, los pendientes se conservan y el <b>fondo de caja vuelve a $0</b>.</p>
+        <div id="resetOpenTables" class="warn-box" style="display: none"></div>
         <div class="form-group">
           <label class="form-label">Crudos para mañana</label
           ><input type="text" class="form-input qty-input" id="leftoverRawForTomorrow" placeholder="0" />
@@ -1536,9 +1649,11 @@
     <div class="cart-bar" id="cartBar">
       <button class="cart-bar-info" onclick="app.scrollToCart()" aria-label="Ver pedido">
         🛒 <span id="cartBarCount">0</span> · <span id="cartBarTotal">$0</span></button
+      ><div class="cart-bar-actions"><button class="btn btn-outline btn-lg table-send-btn" onclick="app.openTableSend()">
+        🍽️ <span class="table-send-short">Mesa</span></button
       ><button class="btn btn-primary btn-lg" onclick="app.showCheckout()">
         <i class="fas fa-credit-card"></i> Cobrar
-      </button>
+      </button></div>
     </div>
 
     <script src="js/storage.js"></script>
@@ -1559,6 +1674,7 @@
     <script src="js/app/cash.js"></script>
     <script src="js/app/clients.js"></script>
     <script src="js/app/receipt.js"></script>
+    <script src="js/app/tables.js"></script>
     <script src="js/app/reports.js"></script>
     <script src="js/main.js"></script>
   </body>

@@ -37,6 +37,7 @@ Object.assign(POSApp.prototype, {
       al = document.getElementById("accountLogin"),
       tg = document.getElementById("accToggle");
     if (!al) return;
+    this.renderKnownAccounts();
     if (on) {
       rb.forEach((b) => (b.style.display = "none"));
       ps.style.display = "none";
@@ -50,6 +51,58 @@ Object.assign(POSApp.prototype, {
       tg.style.display = Cloud.available() ? "block" : "none";
       tg.textContent = f ? "← Volver al acceso local" : "Entrar con una cuenta";
     }
+  },
+
+  /* Sesión recordada por Firebase: se ofrece, no se usa sola. email = null la oculta. */
+  showSessionOffer(email) {
+    const box = document.getElementById("accSession"),
+      form = document.getElementById("accForm");
+    if (!box || !form) return;
+    if (email) {
+      document.getElementById("accSessionEmail").textContent = email;
+      box.style.display = "block";
+      form.style.display = "none";
+    } else {
+      box.style.display = "none";
+      form.style.display = "block";
+      this.renderKnownAccounts();
+    }
+  },
+
+  /* Correos que ya entraron en este equipo: tocar uno lo escribe en el formulario. */
+  renderKnownAccounts() {
+    const box = document.getElementById("accKnown");
+    if (!box) return;
+    const list =
+      typeof Cloud !== "undefined" && Cloud.knownEmails
+        ? Cloud.knownEmails()
+        : [];
+    if (!list.length) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML =
+      '<div class="acc-known-label">Cuentas usadas en este equipo</div>' +
+      list
+        .map(
+          (e) =>
+            `<div class="acc-chip"><button type="button" class="acc-chip-pick" data-email="${Utils.sanitizeInput(e)}">${Utils.sanitizeInput(e)}</button><button type="button" class="acc-chip-x" data-forget="${Utils.sanitizeInput(e)}" aria-label="Quitar de la lista">×</button></div>`,
+        )
+        .join("");
+    box.onclick = (ev) => {
+      const pick = ev.target.closest("[data-email]"),
+        x = ev.target.closest("[data-forget]");
+      if (x) {
+        Cloud.forgetEmail(x.dataset.forget);
+        return;
+      }
+      if (pick) {
+        document.getElementById("accEmail").value = pick.dataset.email;
+        const p = document.getElementById("accPass");
+        p.value = "";
+        p.focus();
+      }
+    };
   },
 
   toggleAccountLogin() {
@@ -141,18 +194,24 @@ Object.assign(POSApp.prototype, {
 
   buildNavigation() {
     const n = document.getElementById("navItems");
+    const mesas = `<button
+          class="nav-item"
+          data-section="tables"><i class="fas fa-chair"></i><span>Mesas</span><span
+          class="nav-badge"
+          id="tablesBadge"
+          style="display:none">0</span></button>`;
     if (this.currentRole === "employee") {
       n.innerHTML = `<button
           class="nav-item active"
           data-section="home"><i class="fas fa-home"></i><span>Inicio</span></button><button
           class="nav-item"
-          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button>`;
+          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button>${mesas}`;
     } else {
       n.innerHTML = `<button
           class="nav-item active"
           data-section="home"><i class="fas fa-home"></i><span>Inicio</span></button><button
           class="nav-item"
-          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button><button
+          data-section="sell"><i class="fas fa-shopping-cart"></i><span>Vender</span></button>${mesas}<button
           class="nav-item"
           data-section="cash"><i class="fas fa-cash-register"></i><span>Caja</span><span
           class="nav-badge"
@@ -192,6 +251,7 @@ Object.assign(POSApp.prototype, {
       cash: "cashSection",
       reports: "reportsSection",
       clients: "clientsSection",
+      tables: "tablesSection",
     };
     const id = map[name];
     if (id) {

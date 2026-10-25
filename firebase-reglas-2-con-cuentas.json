@@ -50,6 +50,14 @@
           ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
           ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
         },
+        "openOrders": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
+        "orderItems": {
+          ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()"
+        },
         "products": {
           ".read": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).exists()",
           ".write": "auth != null && root.child('pos').child($store).child('staff').child(auth.uid).child('r').val() === 'admin'"

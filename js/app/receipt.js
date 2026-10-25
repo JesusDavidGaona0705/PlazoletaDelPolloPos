@@ -141,7 +141,8 @@ Object.assign(POSApp.prototype, {
         <div class="meta"><span>${e(num)}</span><span>${e(when)}</span></div>
         <hr class="sep">
         <div class="bx">
-          ${line("Cliente", e(s.customer || "Cliente"))}
+          ${s.table ? line("Mesa", e(s.table)) : ""}
+          ${s.table && s.customer === s.table ? "" : line("Cliente", e(s.customer || "Cliente"))}
           ${client && client.phone ? line("Teléfono", e(client.phone)) : ""}
           ${who}
         </div>

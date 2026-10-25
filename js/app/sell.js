@@ -227,8 +227,10 @@ Object.assign(POSApp.prototype, {
     }
     document.getElementById("checkoutTotalDisplay").textContent =
       Utils.formatCurrency(this.getCartTotal());
-    document.getElementById("checkoutDiscountInfo").textContent =
-      this.getCartDiscount() > 0
+    const src = this.checkoutSource;
+    document.getElementById("checkoutDiscountInfo").textContent = src
+      ? `🍽️ ${src.label} · ${src.partial ? "pago parcial (cuenta dividida)" : "cuenta completa"}`
+      : this.getCartDiscount() > 0
         ? `Desc: -${Utils.formatCurrency(this.getCartDiscount())}`
         : "";
     document.getElementById("cashReceived").value = "";
@@ -368,7 +370,17 @@ Object.assign(POSApp.prototype, {
       document.getElementById("checkoutClient").focus();
       return;
     }
-    const customerName = client ? client.name : "Cliente";
+    const src = this.checkoutSource || null;
+    if (src && !this.tableChargeValid(src)) {
+      Toast.error(
+        `${src.label} cambió mientras cobrabas (otra caja cobró o quitó productos). Revisa y vuelve a cobrar.`,
+      );
+      const oid = src.orderId;
+      this.hideModal("checkoutModal");
+      if (this.findOrder(oid)) this.openTableDetail(oid);
+      return;
+    }
+    const customerName = client ? client.name : src ? src.label : "Cliente";
     const total = this.getCartTotal();
     const discount = this.getCartDiscount();
     let pm = this.state.selectedPaymentMethod;
@@ -407,8 +419,9 @@ Object.assign(POSApp.prototype, {
         pm === "efectivo" && cashReceived
           ? Math.max(0, cashReceived - total)
           : 0,
-      notes: document.getElementById("orderNotes")?.value || "",
+      notes: src ? "" : document.getElementById("orderNotes")?.value || "",
     };
+    if (src) sale.table = src.label;
     if (sale.status === "pagado") {
       this.state.sales.push(sale);
       Toast.success("✅ Venta");
@@ -416,13 +429,15 @@ Object.assign(POSApp.prototype, {
       this.state.pendingSales.push(sale);
       Toast.info("Pendiente");
     }
-    this.applySaleInventory(this.state.cart, -1);
+    /* Lo de una mesa ya se descontó del inventario cuando se pidió */
+    if (!src) this.applySaleInventory(this.state.cart, -1);
     this.state.cart = [];
     this.state.discountType = "none";
     this.state.discountValue = 0;
+    if (src) this.finishTableCharge(src);
     this.renderCart();
     this.hideModal("checkoutModal");
-    if (document.getElementById("orderNotes"))
+    if (!src && document.getElementById("orderNotes"))
       document.getElementById("orderNotes").value = "";
     this.saveState();
     this.render();

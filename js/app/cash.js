@@ -119,6 +119,14 @@ Object.assign(POSApp.prototype, {
     document.getElementById("leftoverCookedForTomorrow").value =
       Utils.formatQty(this.state.chickens.cooked || 0);
     document.getElementById("resetPassword").value = "";
+    const open = this.openOrdersList ? this.openOrdersList() : [];
+    const w = document.getElementById("resetOpenTables");
+    if (w) {
+      w.style.display = open.length ? "block" : "none";
+      w.textContent = open.length
+        ? `⚠️ Hay ${open.length} mesa(s) abiertas sin cobrar (${open.map((o) => this.orderLabel(o)).join(", ")}). No se borran: siguen abiertas y cuentan como venta cuando se cobren. Sus pollos ya se descontaron hoy; si mañana se cancelan, vuelven al inventario.`
+        : "";
+    }
     this.showModal("resetDayModal");
   },
 

@@ -107,6 +107,17 @@ const Utils = {
     return String(Math.round(n * 1000) / 1000).replace(".", ",");
   },
 
+  /* Reduce la letra de un texto de una línea hasta que quepa en su caja (mínimo `min` px). */
+  fitText(el, min = 11) {
+    if (!el) return;
+    el.style.fontSize = "";
+    if (!el.offsetParent || !el.clientWidth) return;
+    let size = parseFloat(getComputedStyle(el).fontSize) || 16;
+    while (el.scrollWidth > el.clientWidth + 1 && size > min) {
+      size -= 1;
+      el.style.fontSize = size + "px";
+    }
+  },
   sanitizeInput(input) {
     if (!input) return "";
     const d = document.createElement("div");

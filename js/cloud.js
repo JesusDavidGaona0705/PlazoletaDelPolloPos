@@ -12,6 +12,8 @@ const Cloud = (() => {
     "activityLog",
     "categories",
     "settings",
+    "openOrders",
+    "orderItems",
   ];
   const CFG_KEYS = ["dailyGoal", "cashFund"];
   const CNT = {
@@ -30,6 +32,8 @@ const Cloud = (() => {
     "cnt",
     "activityLog",
     "presence",
+    "openOrders",
+    "orderItems",
   ];
   const ADM_NODES = [
     "products",
@@ -334,6 +338,8 @@ const Cloud = (() => {
     sales: "ventas",
     pendingSales: "pendientes",
     clients: "clientes",
+    openOrders: "mesas",
+    orderItems: "pedidos de mesa",
   };
   let permNote = "";
   function noteDenied() {
@@ -361,6 +367,24 @@ const Cloud = (() => {
       if (e.clientId != null && !SAFE_ID.test(String(e.clientId)))
         e.clientId = null;
       (e.items || []).forEach((i) => delete i.image);
+    }
+    if (c === "orderItems") {
+      if (!SAFE_ID.test(String(e.orderId || ""))) return null;
+      if (e.productId != null && !SAFE_ID.test(String(e.productId))) return null;
+      if (e.variantId != null && !SAFE_ID.test(String(e.variantId)))
+        e.variantId = null;
+      if (e.cartKey != null && !/^[\w.-]{1,130}$/.test(String(e.cartKey)))
+        e.cartKey = null;
+      if (e.batch != null && !SAFE_ID.test(String(e.batch))) e.batch = null;
+      e.quantity = Math.max(0, Math.round(+e.quantity || 0));
+      e.price = +e.price || 0;
+      e.chickenUnits = +e.chickenUnits || 0;
+      if (!["raw", "cooked"].includes(e.chickenSource)) e.chickenSource = null;
+      if (!e.quantity) return null;
+    }
+    if (c === "openOrders") {
+      e.table = e.table ? Math.round(+e.table) || null : null;
+      e.name = e.name == null ? null : String(e.name).slice(0, 40);
     }
     return e;
   }
@@ -549,7 +573,7 @@ const Cloud = (() => {
             changed = true;
           }
         } else if (rv !== sv) {
-          p.stock = Math.max(0, (+p.stock || 0) + (rv - sv));
+          p.stock = (+p.stock || 0) + (rv - sv);
           changed = true;
         }
         shadow[path] = rv;
@@ -893,6 +917,59 @@ const Cloud = (() => {
       staffKnown = false;
     }
   }
+  /* Cuenta elegida en esta pestaña: Firebase recuerda la última sesión, pero la app no entra
+     sola con ella; la persona elige «Continuar como …» o entra con otra cuenta. */
+  let chosenUid = null,
+    expectLogin = false;
+  const SS = (k) => {
+    try {
+      return sessionStorage.getItem(k);
+    } catch (e) {
+      return null;
+    }
+  };
+  const SSset = (k, v) => {
+    try {
+      if (v == null) sessionStorage.removeItem(k);
+      else sessionStorage.setItem(k, v);
+    } catch (e) {}
+  };
+  function isChosen() {
+    return !!(
+      user &&
+      (chosenUid === user.uid || SS("pos_chosen_uid") === user.uid)
+    );
+  }
+  function markChosen() {
+    if (!user) return;
+    chosenUid = user.uid;
+    SSset("pos_chosen_uid", user.uid);
+  }
+  function clearChosen() {
+    chosenUid = null;
+    SSset("pos_chosen_uid", null);
+  }
+  function knownEmails() {
+    try {
+      const a = JSON.parse(LS("pos_known_emails") || "[]");
+      return Array.isArray(a) ? a.filter((x) => typeof x === "string") : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function rememberEmail(e) {
+    if (!e) return;
+    const a = knownEmails().filter((x) => x !== e);
+    a.unshift(e);
+    LSset("pos_known_emails", JSON.stringify(a.slice(0, 8)));
+  }
+  function forgetEmail(e) {
+    LSset(
+      "pos_known_emails",
+      JSON.stringify(knownEmails().filter((x) => x !== e)),
+    );
+    if (app && app.renderKnownAccounts) app.renderKnownAccounts();
+  }
   /* Decide si se puede entrar: sin cuentas = modo anterior; con cuentas = hace falta sesión con correo y rol */
   function gate() {
     if (!app) return;
@@ -907,8 +984,22 @@ const Cloud = (() => {
       stopDb();
       setStatus("paused", "Inicia sesión con tu cuenta para sincronizar.");
       if (app.currentRole) app.forceLogout();
+      if (app.showSessionOffer) app.showSessionOffer(null);
       return;
     }
+    if (!isChosen()) {
+      if (expectLogin) {
+        expectLogin = false;
+        markChosen();
+      } else {
+        stopDb();
+        setStatus("paused", "Elige con qué cuenta entrar.");
+        if (app.currentRole) app.forceLogout();
+        if (app.showSessionOffer) app.showSessionOffer(user.email);
+        return;
+      }
+    }
+    if (app.showSessionOffer) app.showSessionOffer(null);
     const r = myRole();
     if (!r) {
       if (staffKnown) {
@@ -933,6 +1024,7 @@ const Cloud = (() => {
     }
     if (r) {
       LSset("pos_role_" + user.uid, r);
+      rememberEmail(user.email);
       denied.clear();
       ensureDb();
       app.loginFromCloud(r, user.email);
@@ -1051,10 +1143,19 @@ const Cloud = (() => {
     }
     const b = $("accBtn");
     if (b) b.disabled = true;
+    expectLogin = true;
     try {
       await auth.signInWithEmailAndPassword(e, p);
       if ($("accPass")) $("accPass").value = "";
+      /* Si ya era la misma sesión guardada, Firebase no avisa de cambio: entrar igual */
+      if (auth.currentUser && !isChosen()) {
+        user = auth.currentUser;
+        expectLogin = false;
+        markChosen();
+        readStaff().then(gate);
+      }
     } catch (err) {
+      expectLogin = false;
       const bad = /invalid-credential|wrong-password|user-not-found/.test(
         err.code || "",
       );
@@ -1095,7 +1196,29 @@ const Cloud = (() => {
     }
   }
   function onLogout() {
+    clearChosen();
     if (accountsMode()) signOut();
+  }
+  /* «Continuar como …»: usar la sesión que Firebase recordó en este equipo */
+  function continueSession() {
+    if (!emailUser()) {
+      if (app.showSessionOffer) app.showSessionOffer(null);
+      return;
+    }
+    markChosen();
+    readStaff().then(gate);
+  }
+  /* «Usar otra cuenta»: cerrar la sesión guardada y mostrar el formulario vacío */
+  async function switchAccount() {
+    clearChosen();
+    await signOut();
+    if (app.showSessionOffer) app.showSessionOffer(null);
+    const em = $("accEmail");
+    if (em) {
+      em.value = "";
+      em.focus();
+    }
+    if ($("accPass")) $("accPass").value = "";
   }
   async function checkPassword(p) {
     if (
@@ -1662,6 +1785,10 @@ const Cloud = (() => {
     resetFromForm,
     signOut,
     onLogout,
+    continueSession,
+    switchAccount,
+    knownEmails,
+    forgetEmail,
     checkPassword,
     createAdmin,
     addStaff,

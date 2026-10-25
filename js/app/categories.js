@@ -187,7 +187,9 @@ Object.assign(POSApp.prototype, {
       }
       const p = this.state.products.find((x) => x.id === i.productId);
       if (p && !this.isChickenProduct(p)) {
-        p.stock = Math.max(0, (Number(p.stock) || 0) + dir * i.quantity);
+        /* Sin recortar a 0: así, quitar de una mesa o borrar una factura devuelve
+           exactamente lo que se descontó (antes se «creaba» stock). */
+        p.stock = (Number(p.stock) || 0) + dir * i.quantity;
       }
     });
     const ch = this.state.chickens;

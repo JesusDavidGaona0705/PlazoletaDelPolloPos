@@ -35,6 +35,8 @@ class POSApp {
       dailyGoal: 30,
       categories: [],
       settings: [],
+      openOrders: [],
+      orderItems: [],
       migrations: {},
       selectedUsageSource: "cooked",
       discountType: "none",
@@ -62,6 +64,8 @@ class POSApp {
     if (!this.state.dailyGoal) this.state.dailyGoal = 30;
     if (!this.state.categories) this.state.categories = [];
     if (!this.state.settings) this.state.settings = [];
+    if (!Array.isArray(this.state.openOrders)) this.state.openOrders = [];
+    if (!Array.isArray(this.state.orderItems)) this.state.orderItems = [];
     if (!this.state.migrations) this.state.migrations = {};
     this.ensureData(false);
     this.loadTheme();
@@ -104,7 +108,20 @@ class POSApp {
   }
 
   persistLocal() {
-    Storage_set("pos_state", this.state);
+    /* Durante el cobro de una mesa el carrito tiene los productos de la mesa: se guarda el
+       carrito real para que, si la app se cierra ahí, no se vuelvan a cobrar ni a descontar. */
+    const h = this.checkoutSource && this._held;
+    Storage_set(
+      "pos_state",
+      h
+        ? {
+            ...this.state,
+            cart: h.cart || [],
+            discountType: h.discountType || "none",
+            discountValue: h.discountValue || 0,
+          }
+        : this.state,
+    );
   }
 
   saveState() {
@@ -131,6 +148,8 @@ class POSApp {
 
   hideModal(id) {
     document.getElementById(id).classList.remove("active");
+    /* Si se cierra el cobro de una mesa sin cobrar, vuelve el carrito que se estaba armando */
+    if (id === "checkoutModal" && this.checkoutSource) this.restoreHeldCart();
     if (!document.querySelector(".modal-overlay.active"))
       document.body.classList.remove("modal-open");
   }
@@ -173,6 +192,11 @@ class POSApp {
     this.renderDashboard();
     this.renderSellSections();
     this.renderCart();
+    this.renderTables();
+    if (
+      document.getElementById("tableDetailModal")?.classList.contains("active")
+    )
+      this.renderTableDetail();
     if (this.currentRole === "admin") {
       this.renderCategoryTabs();
       this.renderProductsManage();
@@ -296,7 +320,7 @@ class POSApp {
       if (e.key === "Escape") {
         document
           .querySelectorAll(".modal-overlay.active")
-          .forEach((m) => m.classList.remove("active"));
+          .forEach((m) => this.hideModal(m.id));
         document.body.classList.remove("modal-open");
       }
     });

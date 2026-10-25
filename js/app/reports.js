@@ -5,13 +5,27 @@ Object.assign(POSApp.prototype, {
     this.ventasDesgloseOpen = !this.ventasDesgloseOpen;
     const d = document.getElementById("ventasDesglose"),
       c = document.getElementById("ventasChevron");
-    if (this.ventasDesgloseOpen) {
-      d.classList.add("active");
-      c.className = "fas fa-chevron-up";
-    } else {
-      d.classList.remove("active");
-      c.className = "fas fa-chevron-down";
-    }
+    const card = document.getElementById("ventasCard");
+    /* Abierta ocupa todo el ancho: en media columna las cifras no caben */
+    d.classList.toggle("active", this.ventasDesgloseOpen);
+    if (card) card.classList.toggle("wide", this.ventasDesgloseOpen);
+    c.className = this.ventasDesgloseOpen
+      ? "fas fa-chevron-up"
+      : "fas fa-chevron-down";
+    this.fitDashboard();
+  },
+
+  /* Las cifras grandes se achican hasta caber en su recuadro (nunca se salen). */
+  fitDashboard() {
+    const run = () =>
+      document
+        .querySelectorAll(
+          "#homeSection .card-value, #homeSection .desglose-value",
+        )
+        .forEach((el) => Utils.fitText(el));
+    if (typeof requestAnimationFrame === "function")
+      requestAnimationFrame(run);
+    else run();
   },
 
   exportReportPDF() {
@@ -134,6 +148,11 @@ Object.assign(POSApp.prototype, {
     document.getElementById("dashPendientes").textContent = Utils.formatNumber(
       this.state.pendingSales.length,
     );
+    const vc = document.getElementById("ventasCard");
+    if (vc) vc.classList.toggle("wide", !!this.ventasDesgloseOpen);
+    const vd = document.getElementById("ventasDesglose");
+    if (vd) vd.classList.toggle("active", !!this.ventasDesgloseOpen);
+    this.fitDashboard();
     const te2 = this.state.expenses.reduce((t, e) => t + e.amount, 0);
     document.getElementById("cashExpected").textContent = Utils.formatCurrency(
       te - te2 + this.state.cashFund,
